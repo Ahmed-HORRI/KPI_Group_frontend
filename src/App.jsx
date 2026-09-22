@@ -12,6 +12,7 @@ import TrainingDashboardPage from "./pages/Training/TrainingDashboardPage.jsx";
 import CorrectiveActionsListPage from "./pages/CorrectiveActions/CorrectiveActionsListPage.jsx";
 import CorrectiveActionFormPage from "./pages/CorrectiveActions/CorrectiveActionFormPage.jsx";
 import CorrectiveActionsBulkPage from "./pages/CorrectiveActions/CorrectiveActionsBulkPage.jsx";
+import KpiEntryFormPage from "./pages/Responsibles/KpiEntryFormPage.jsx";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
           <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
           <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
+          <Route path="/form" element={<KpiEntryFormPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
