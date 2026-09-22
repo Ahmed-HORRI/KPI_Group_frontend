@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout.jsx";
 import KpiAdminPage from "./pages/KPIs/KpiAdminPage.jsx";
+import KpiTrendsPage from "./pages/KPIs/KpiTrendsPage.jsx";
 import CeoReportPlantPage from "./pages/CeoReport/CeoReportPlantPage.jsx";
 import TargetAdjustmentReviewPage from "./pages/TargetAdjustments/TargetAdjustmentReviewPage.jsx";
 import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
@@ -16,6 +17,7 @@ export default function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/kpi-admin" element={<KpiAdminPage />} />
+          <Route path="/kpi-trends" element={<KpiTrendsPage />} />
           <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
           <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
