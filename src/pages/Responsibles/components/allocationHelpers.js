@@ -26,7 +26,6 @@ import {
   getLastPathSegment,
   getLocalDateInputValue,
   normalizeParameterDateValue,
-  splitParameterPath,
 } from "./formatting.js";
 
 export const PARAMETER_ZONE_ALL_ROLE_VALUE = "__all_roles__";
@@ -1426,12 +1425,6 @@ export function getExpectedMultisiteTargetCount(lookups, row = {}) {
     .filter((unit) => String(unit.label || "").trim().toLowerCase() !== "avocarbon group").length;
 }
 
-export function getParameterCategory(row) {
-  const parts = splitParameterPath(row.kpi_subject || row.kpi_group || row.kpi_name || "");
-  if (parts.length >= 2) return parts[parts.length - 2];
-  if (parts.length === 1) return parts[0];
-  return "General";
-}
 
 // ---------------------------------------------------------------------------
 // Allocation id helpers (delete + existing_allocation_ids)
