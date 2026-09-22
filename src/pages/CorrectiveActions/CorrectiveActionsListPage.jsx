@@ -1,0 +1,186 @@
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import apiClient from "../../api/client";
+
+// Data source note: the original GET /corrective-actions-list queried
+// public."Responsible"/"Plant"/"Department" and public.corrective_actions --
+// all confirmed absent from the current database (information_schema), so
+// that page has thrown on every request since before this migration (same
+// legacy-table pattern already documented for /dashboard-history and
+// /kpi-trends). This page instead calls the new
+// GET /api/responsibles/:id/corrective-actions, which reads from the real,
+// currently-live corrective-action store (the separate Action Plan
+// database) via the already-used loadActionPlanCorrectiveActionMaps helper.
+
+function formatDate(value) {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function isOverdue(action) {
+  if (!action.due_date || ["Closed", "Completed"].includes(action.status)) return false;
+  const due = new Date(action.due_date);
+  if (Number.isNaN(due.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+const STATUS_CLASSES = {
+  Open: "bg-blue-50 text-blue-700",
+  "Waiting for validation": "bg-amber-50 text-amber-700",
+  Completed: "bg-green-50 text-green-700",
+  Closed: "bg-slate-100 text-slate-500",
+};
+
+function ActionCard({ action, responsibleId }) {
+  const overdue = isOverdue(action);
+  const kpi = action.kpi || {};
+  const currentVal = kpi.current_value !== null && kpi.current_value !== undefined ? parseFloat(kpi.current_value) : null;
+  const targetVal = kpi.target !== null && kpi.target !== undefined ? parseFloat(kpi.target) : null;
+  const gap = currentVal !== null && targetVal !== null && !Number.isNaN(currentVal) && !Number.isNaN(targetVal)
+    ? (targetVal - currentVal).toFixed(2)
+    : "—";
+
+  return (
+    <div className={`rounded-2xl border bg-white p-5 shadow-sm ${overdue ? "border-red-300" : "border-slate-200"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-bold text-slate-800">{kpi.subject || "KPI"}</div>
+          {kpi.indicator_sub_title && <div className="text-xs text-slate-400">{kpi.indicator_sub_title}</div>}
+        </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_CLASSES[action.status] || "bg-slate-100 text-slate-600"}`}>
+          {action.status || "Open"}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400">Current</div>
+          <div className="mt-1 text-sm font-bold text-slate-800">{kpi.current_value ?? "—"} {kpi.unit || ""}</div>
+        </div>
+        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400">Target</div>
+          <div className="mt-1 text-sm font-bold text-slate-800">{kpi.target ?? "—"} {kpi.unit || ""}</div>
+        </div>
+        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400">Gap</div>
+          <div className="mt-1 text-sm font-bold text-slate-800">{gap} {kpi.unit || ""}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
+        <div>
+          <span className="block text-slate-400">Week</span>
+          <strong className="text-slate-700">{action.week}</strong>
+        </div>
+        <div>
+          <span className="block text-slate-400">Responsible</span>
+          <strong className="text-slate-700">{action.responsible || "—"}</strong>
+        </div>
+        <div>
+          <span className="block text-slate-400">Due Date</span>
+          <strong className={overdue ? "text-red-600" : "text-slate-700"}>{formatDate(action.due_date)}</strong>
+        </div>
+        <div>
+          <span className="block text-slate-400">Estimated Days</span>
+          <strong className="text-slate-700">{action.estimated_duration_days ?? "—"}</strong>
+        </div>
+        <div>
+          <span className="block text-slate-400">Importance</span>
+          <strong className="text-slate-700">{action.importance || "—"}</strong>
+        </div>
+        <div>
+          <span className="block text-slate-400">Urgency</span>
+          <strong className="text-slate-700">{action.urgency || "—"}</strong>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5">
+        <span className={`text-xs font-semibold ${overdue ? "text-red-600" : "text-slate-400"}`}>
+          {action.due_date ? (overdue ? "⛔ Overdue" : "📅 Due date set") : "🕒 No due date"}
+        </span>
+        <Link
+          to={`/corrective-action-form?responsible_id=${encodeURIComponent(responsibleId)}&kpi_id=${encodeURIComponent(kpi.kpi_id || action.kpi_id)}&week=${encodeURIComponent(action.week)}&corrective_action_id=${encodeURIComponent(action.corrective_action_id)}`}
+          className="rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm"
+        >
+          {action.status === "Open" ? "Complete Action" : "View Corrective Action"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function CorrectiveActionsListPage() {
+  const [searchParams] = useSearchParams();
+  const responsibleId = searchParams.get("responsible_id");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actions, setActions] = useState([]);
+
+  useEffect(() => {
+    if (!responsibleId) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    apiClient
+      .get(`/api/responsibles/${responsibleId}/corrective-actions`)
+      .then((res) => {
+        if (cancelled) return;
+        setActions(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err.response?.data?.error || "Failed to load corrective actions.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [responsibleId]);
+
+  if (!responsibleId) {
+    return (
+      <div className="mx-auto max-w-xl p-10">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+          Missing responsible_id
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-[1200px] p-6">
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-700 p-7 text-white shadow-lg">
+        <h1 className="text-3xl font-extrabold">Corrective Actions</h1>
+        <p className="mt-1.5 text-sm text-white/80">Open corrective actions assigned to this responsible.</p>
+      </div>
+
+      {loading && <div className="p-14 text-center text-slate-400">Loading corrective actions...</div>}
+      {!loading && error && <div className="p-14 text-center text-red-500">{error}</div>}
+
+      {!loading && !error && actions.length === 0 && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-16 text-center">
+          <h3 className="text-lg font-bold text-slate-700">No corrective actions found</h3>
+          <p className="mt-1 text-sm text-slate-400">This responsible does not have corrective actions yet.</p>
+        </div>
+      )}
+
+      {!loading && !error && actions.length > 0 && (
+        <div className="grid gap-5 sm:grid-cols-2">
+          {actions.map((action) => (
+            <ActionCard key={action.corrective_action_id} action={action} responsibleId={responsibleId} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
