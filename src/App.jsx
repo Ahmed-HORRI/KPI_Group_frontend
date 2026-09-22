@@ -10,6 +10,7 @@ import TrainingCenterPage from "./pages/Training/TrainingCenterPage.jsx";
 import TrainingDocumentationPage from "./pages/Training/TrainingDocumentationPage.jsx";
 import TrainingDashboardPage from "./pages/Training/TrainingDashboardPage.jsx";
 import CorrectiveActionsListPage from "./pages/CorrectiveActions/CorrectiveActionsListPage.jsx";
+import CorrectiveActionFormPage from "./pages/CorrectiveActions/CorrectiveActionFormPage.jsx";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
           <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
           <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
+          <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
