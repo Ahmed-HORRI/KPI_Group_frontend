@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout.jsx";
 import KpiAdminPage from "./pages/KPIs/KpiAdminPage.jsx";
 import KpiTrendsPage from "./pages/KPIs/KpiTrendsPage.jsx";
@@ -13,6 +13,15 @@ import CorrectiveActionsListPage from "./pages/CorrectiveActions/CorrectiveActio
 import CorrectiveActionFormPage from "./pages/CorrectiveActions/CorrectiveActionFormPage.jsx";
 import CorrectiveActionsBulkPage from "./pages/CorrectiveActions/CorrectiveActionsBulkPage.jsx";
 import KpiEntryFormPage from "./pages/Responsibles/KpiEntryFormPage.jsx";
+import ResponsibleDashboardPage from "./pages/Responsibles/ResponsibleDashboardPage.jsx";
+
+// GET /responsible/:responsibleId/kpis/:kpiId/edit (index.js:24322) only ever
+// redirected to the dashboard with ?editKpi=<kpiId> to auto-open the edit
+// modal -- ResponsibleDashboardPage already handles that query param itself.
+function ResponsibleKpiEditRedirect() {
+  const { responsibleId, kpiId } = useParams();
+  return <Navigate to={`/responsible/${responsibleId}/dashboard?editKpi=${kpiId}`} replace />;
+}
 
 export default function App() {
   return (
@@ -33,6 +42,8 @@ export default function App() {
           <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
           <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
           <Route path="/form" element={<KpiEntryFormPage />} />
+          <Route path="/responsible/:responsibleId/dashboard" element={<ResponsibleDashboardPage />} />
+          <Route path="/responsible/:responsibleId/kpis/:kpiId/edit" element={<ResponsibleKpiEditRedirect />} />
         </Route>
       </Routes>
     </BrowserRouter>
