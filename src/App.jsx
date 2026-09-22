@@ -5,6 +5,8 @@ import CeoReportPlantPage from "./pages/CeoReport/CeoReportPlantPage.jsx";
 import TargetAdjustmentReviewPage from "./pages/TargetAdjustments/TargetAdjustmentReviewPage.jsx";
 import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
 import DashboardHistoryPage from "./pages/Dashboard/DashboardHistoryPage.jsx";
+import TrainingCenterPage from "./pages/Training/TrainingCenterPage.jsx";
+import TrainingDocumentationPage from "./pages/Training/TrainingDocumentationPage.jsx";
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
+          <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
+          <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
