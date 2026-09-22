@@ -7,6 +7,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
 import DashboardHistoryPage from "./pages/Dashboard/DashboardHistoryPage.jsx";
 import TrainingCenterPage from "./pages/Training/TrainingCenterPage.jsx";
 import TrainingDocumentationPage from "./pages/Training/TrainingDocumentationPage.jsx";
+import TrainingDashboardPage from "./pages/Training/TrainingDashboardPage.jsx";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
           <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
           <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
+          <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
