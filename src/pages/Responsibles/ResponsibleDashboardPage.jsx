@@ -176,9 +176,26 @@ export default function ResponsibleDashboardPage() {
     [responsibleId, showToast]
   );
 
+  // loadReferenceKpis() / loadKpiNames() in the original always fetch the
+  // unfiltered list (search=""), independently of the KPI Matrix search box.
+  // It feeds the Reference KPI dropdown and the allocation modal's KPI list.
+  const [kpiCatalog, setKpiCatalog] = useState([]);
+
+  const loadKpiCatalog = useCallback(async () => {
+    try {
+      const res = await apiClient.get(`/api/responsibles/${responsibleId}/kpis`, {
+        params: { include_all: 1, search: "" },
+      });
+      setKpiCatalog(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setKpiCatalog([]);
+    }
+  }, [responsibleId]);
+
   useEffect(() => {
     loadKpis("");
-  }, [loadKpis]);
+    loadKpiCatalog();
+  }, [loadKpis, loadKpiCatalog]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => loadKpis(kpiSearch), 250);
@@ -300,6 +317,7 @@ export default function ResponsibleDashboardPage() {
       setKpiPendingFile(null);
       setKpiModalOpen(false);
       await loadKpis(kpiSearch);
+      await loadKpiCatalog();
       if (isCreateMode && res.data?.kpi_id) {
         setView("dashboard");
         showToast("KPI created successfully");
@@ -320,6 +338,7 @@ export default function ResponsibleDashboardPage() {
       await apiClient.delete(`/api/kpis/${kpiId}`);
       if (String(kpiForm.kpi_id) === String(kpiId)) setKpiModalOpen(false);
       await loadKpis(kpiSearch);
+      await loadKpiCatalog();
       await loadAllocations();
       showToast("KPI deleted successfully");
     } catch (err) {
@@ -381,6 +400,7 @@ export default function ResponsibleDashboardPage() {
       });
 
       await loadKpis(kpiSearch);
+      await loadKpiCatalog();
       showToast("KPI duplicated successfully");
     } catch (err) {
       showToast(err.response?.data?.error || `Unable to duplicate KPI: ${err.message}`);
@@ -507,7 +527,7 @@ export default function ResponsibleDashboardPage() {
     const payload = buildParameterPayload(ctx, formForSave, allocationUnitState, {
       lockedUnitId: allocationLockedUnitId,
       editMode: allocationEditMode,
-      kpiCatalog: kpiRows,
+      kpiCatalog,
       existingAllocationIds,
     });
 
@@ -743,7 +763,7 @@ export default function ResponsibleDashboardPage() {
           setForm={setKpiForm}
           isEdit={Boolean(kpiForm.kpi_id)}
           saving={kpiSaving}
-          referenceKpiRows={kpiRows}
+          referenceKpiRows={kpiCatalog}
           roleOptions={ctx.roleOptions}
           responsibleName={responsibleName}
           pendingFile={kpiPendingFile}
@@ -760,7 +780,7 @@ export default function ResponsibleDashboardPage() {
       {allocationModalOpen ? (
         <TargetAllocationModal
           ctx={ctx}
-          kpiCatalog={kpiRows}
+          kpiCatalog={kpiCatalog}
           form={allocationForm}
           setForm={setAllocationForm}
           unitState={allocationUnitState}
