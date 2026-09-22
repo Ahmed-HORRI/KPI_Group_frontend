@@ -852,18 +852,33 @@ export function getRoleApplyAllUnitSummary(visibleRows = []) {
   const unitNames = Array.from(
     new Set(visibleRows.map((row) => String(row.label || "").trim()).filter(Boolean))
   );
-  const title = unitNames.length
-    ? `${unitNames.length} unit${unitNames.length === 1 ? "" : "s"}`
-    : "No unit";
-  const detail =
-    unitNames.length > 4 ? `${unitNames.slice(0, 4).join(", ")} +${unitNames.length - 4}` : unitNames.join(", ");
-  return { title, detail };
+  const unitCount = unitNames.length;
+  const preview =
+    unitNames.length > 3
+      ? `${unitNames.slice(0, 3).join(", ")} +${unitNames.length - 3}`
+      : unitNames.join(", ");
+
+  return {
+    title: unitCount ? `${unitCount} unit${unitCount === 1 ? "" : "s"}` : "Related units",
+    detail: preview || "Units linked to the selected role",
+  };
 }
 
+// syncRoleApplyAllRowState(): write the shared value into every visible row,
+// normalizing the setup date exactly like the original did.
 export function applyRoleApplyAllPatch(unitState, visibleRows = [], patch = {}) {
+  const rowPatch = {};
+  if (Object.prototype.hasOwnProperty.call(patch, "target_value")) {
+    rowPatch.target_value = String(patch.target_value ?? "");
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, "target_setup_date")) {
+    rowPatch.target_setup_date = normalizeParameterDateValue(patch.target_setup_date) || "";
+  }
+  if (!Object.keys(rowPatch).length) return unitState;
+
   let nextState = unitState;
   visibleRows.forEach((row) => {
-    nextState = setParameterUnitState(nextState, row.row_kind || "role", row.value, patch);
+    nextState = setParameterUnitState(nextState, row.row_kind || "role", row.value, rowPatch);
   });
   return nextState;
 }
