@@ -238,10 +238,22 @@ export default function ResponsibleDashboardPage() {
   const [kpiSaving, setKpiSaving] = useState(false);
   const [kpiDetails, setKpiDetails] = useState(null);
   const [kpiPendingDeleteId, setKpiPendingDeleteId] = useState(null);
+  const [kpiPendingFile, setKpiPendingFile] = useState(null);
+  // captureKpiCreateDraft() / restoreKpiCreateDraft(): closing the CREATE modal
+  // keeps what was typed; reopening "Create KPI" restores it. Cleared on a
+  // successful create. Edits are never drafted.
+  const [kpiCreateDraft, setKpiCreateDraft] = useState(null);
 
   const openCreateKpiModal = () => {
-    setKpiForm(KPI_CREATE_DEFAULTS);
+    setKpiForm(kpiCreateDraft || KPI_CREATE_DEFAULTS);
     setKpiModalOpen(true);
+  };
+
+  const dismissKpiModal = () => {
+    if (kpiSaving) return;
+    if (!kpiForm.kpi_id) setKpiCreateDraft(kpiForm);
+    else setKpiPendingFile(null);
+    setKpiModalOpen(false);
   };
 
   const openEditKpiModal = useCallback(
@@ -249,6 +261,7 @@ export default function ResponsibleDashboardPage() {
       try {
         const res = await apiClient.get(`/api/kpis/${kpiId}`);
         setKpiForm(kpiRowToForm(res.data));
+        setKpiPendingFile(null);
         setKpiModalOpen(true);
       } catch (err) {
         showToast(`Unable to load KPI: ${err.response?.data?.error || err.message}`);
@@ -283,6 +296,8 @@ export default function ResponsibleDashboardPage() {
         ? await apiClient.post(`/api/responsibles/${responsibleId}/kpis`, payload)
         : await apiClient.put(`/api/kpis/${kpiForm.kpi_id}`, payload);
 
+      if (isCreateMode) setKpiCreateDraft(null);
+      setKpiPendingFile(null);
       setKpiModalOpen(false);
       await loadKpis(kpiSearch);
       if (isCreateMode && res.data?.kpi_id) {
@@ -383,8 +398,21 @@ export default function ResponsibleDashboardPage() {
   const [allocationLockedUnitId, setAllocationLockedUnitId] = useState("");
   const [allocationSaving, setAllocationSaving] = useState(false);
   const [allocationPendingDelete, setAllocationPendingDelete] = useState(null);
+  // captureParameterCreateDraft() / restoreParameterCreateDraft(): same draft
+  // behaviour as the KPI modal, including the per-row target state.
+  const [allocationCreateDraft, setAllocationCreateDraft] = useState(null);
 
   const openCreateAllocationModal = () => {
+    if (allocationCreateDraft) {
+      setAllocationForm(allocationCreateDraft.form);
+      setAllocationUnitState(allocationCreateDraft.unitState);
+      setAllocationLockedUnitId(allocationCreateDraft.lockedUnitId);
+      setAllocationEditMode(false);
+      setAllocationEditRows([]);
+      setAllocationModalOpen(true);
+      return;
+    }
+
     const defaultResponsiblePeopleId = (ctx.lookups.people || []).some(
       (option) => String(option?.value || "") === String(dashboardResponsibleId || "")
     )
@@ -402,6 +430,18 @@ export default function ResponsibleDashboardPage() {
     setAllocationEditRows([]);
     setAllocationLockedUnitId("");
     setAllocationModalOpen(true);
+  };
+
+  const dismissAllocationModal = () => {
+    if (allocationSaving) return;
+    if (!allocationEditMode && !allocationForm.parameter_object_id) {
+      setAllocationCreateDraft({
+        form: allocationForm,
+        unitState: allocationUnitState,
+        lockedUnitId: allocationLockedUnitId,
+      });
+    }
+    setAllocationModalOpen(false);
   };
 
   const openEditAllocationModal = async (allocationId) => {
@@ -486,6 +526,7 @@ export default function ResponsibleDashboardPage() {
         );
       } else {
         await apiClient.post(`/api/responsibles/${responsibleId}/kpi-objects`, payload);
+        setAllocationCreateDraft(null);
       }
 
       setAllocationModalOpen(false);
@@ -705,9 +746,11 @@ export default function ResponsibleDashboardPage() {
           referenceKpiRows={kpiRows}
           roleOptions={ctx.roleOptions}
           responsibleName={responsibleName}
+          pendingFile={kpiPendingFile}
+          setPendingFile={setKpiPendingFile}
           onSave={saveKpi}
           onDelete={() => setKpiPendingDeleteId(kpiForm.kpi_id)}
-          onClose={() => setKpiModalOpen(false)}
+          onClose={dismissKpiModal}
           onToast={showToast}
         />
       ) : null}
@@ -730,7 +773,7 @@ export default function ResponsibleDashboardPage() {
           onDelete={() =>
             requestAllocationDelete(allocationForm.parameter_object_id, { fromModal: true })
           }
-          onClose={() => setAllocationModalOpen(false)}
+          onClose={dismissAllocationModal}
         />
       ) : null}
 

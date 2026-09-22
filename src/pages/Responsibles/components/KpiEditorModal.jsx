@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import {
   KFS_OPTIONS,
   UNIT_OPTIONS,
@@ -305,19 +305,14 @@ export default function KpiEditorModal({
   referenceKpiRows,
   roleOptions,
   responsibleName,
+  pendingFile,
+  setPendingFile,
   onSave,
   onDelete,
   onClose,
   onToast,
 }) {
-  const [pendingFile, setPendingFile] = useState(null);
   const fileInputRef = useRef(null);
-
-  // Keep the pending upload scoped to a single open/close cycle.
-  useEffect(() => {
-    setPendingFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }, [form.kpi_id]);
 
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
