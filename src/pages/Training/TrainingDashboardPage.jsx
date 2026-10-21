@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Doughnut, Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -96,11 +97,15 @@ function DueDateCell({ row }) {
 }
 
 export default function TrainingDashboardPage() {
+  const [searchParams] = useSearchParams();
   const [allRows, setAllRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [search, setSearch] = useState("");
+  // Deep-linked from the Responsible dashboard's "Training Session Dashboard"
+  // nav item (?search=<name>), which pre-fills this same search box instead of
+  // needing a person-scoped variant of this page.
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState("");
   const [passFilter, setPassFilter] = useState("");
   const [escFilter, setEscFilter] = useState("");

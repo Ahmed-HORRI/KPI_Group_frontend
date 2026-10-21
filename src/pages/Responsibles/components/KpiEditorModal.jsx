@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   KFS_OPTIONS,
   UNIT_OPTIONS,
@@ -17,7 +17,8 @@ import {
   TARGET_AUTO_ADJUSTMENT_OPTIONS,
   TOLERANCE_TYPE_OPTIONS,
 } from "../../../constants/kpiOptions";
-import { Field, Modal, SectionTitle, inputClass } from "./ui.jsx";
+import { Field, Modal, SectionPanel, inputClass } from "./ui.jsx";
+import SubjectTreePicker from "./SubjectTreePicker.jsx";
 import {
   formatToleranceForInput,
   inferValueType,
@@ -29,12 +30,17 @@ import {
 
 const KPI_FILE_UPLOAD_MAX_SIZE = 20 * 1024 * 1024;
 
+// Native selects size themselves to their longest option, including dynamic
+// reference KPI names. Reserve only the usual padding and dropdown arrow.
+const selectClass = inputClass.replace("w-full", "w-auto max-w-full self-start");
+
 // resetForm() + openCreateModal() of the original script, merged.
 export const KPI_CREATE_DEFAULTS = Object.freeze({
   kpi_id: "",
   kfs: "KPI",
   indicator_sub_title: "",
   subject: "",
+  subject_node_id: "",
   kpi_code: "",
   kpi_formula: "",
   unit: "kCur",
@@ -121,6 +127,7 @@ export function kpiRowToForm(data) {
     kfs: data.kfs || "KPI",
     indicator_sub_title: data.indicator_sub_title || "",
     subject: data.full_subject_path || data.subject || data.indicator_title || "",
+    subject_node_id: data.subject_node_id ?? data.subject_id ?? "",
     kpi_code: data.kpi_code || "",
     kpi_formula: data.kpi_formula || "",
     unit: data.unit || "",
@@ -162,12 +169,10 @@ export function kpiRowToForm(data) {
   };
 }
 
-// validateKpiForm() of the original script. The "Select the final subject from
-// the tree" check becomes a non-empty subject text check (the tree picker is
-// simplified to a text field matched server-side by name / full path).
+// Only a confirmed final subject is saved; browsing a parent does not select it.
 export function validateKpiForm(form) {
   const validations = [
-    { valid: Boolean(form.subject), message: "Subject is required." },
+    { valid: Boolean(form.subject_node_id && form.subject), message: "Select the final subject from the tree." },
     { valid: Boolean(form.indicator_sub_title), message: "KPI Name is required." },
     { valid: Boolean(form.unit), message: "Unit is required." },
     { valid: Boolean(form.frequency), message: "Frequency is required." },
@@ -263,6 +268,7 @@ export async function buildKpiPayload(form, pendingFile) {
     indicator_title: form.subject,
     indicator_sub_title: form.indicator_sub_title,
     subject: form.subject,
+    subject_node_id: form.subject_node_id,
     kpi_code: form.kpi_code,
     kpi_formula: form.kpi_formula,
     unit: form.unit,
@@ -304,6 +310,9 @@ export default function KpiEditorModal({
   saving,
   referenceKpiRows,
   roleOptions,
+  subjectTree = [],
+  subjectsLoading,
+  subjectsError,
   responsibleName,
   pendingFile,
   setPendingFile,
@@ -313,6 +322,7 @@ export default function KpiEditorModal({
   onToast,
 }) {
   const fileInputRef = useRef(null);
+  const [subjectPickerOpen, setSubjectPickerOpen] = useState(false);
 
   const update = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -405,6 +415,8 @@ export default function KpiEditorModal({
 
   return (
     <Modal
+      wide
+      compact
       title={isEdit ? "Edit KPI Attributes" : "Add New KPI"}
       subtitle={
         isEdit
@@ -417,7 +429,7 @@ export default function KpiEditorModal({
           {isEdit ? (
             <button
               type="button"
-              className="mr-auto rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50"
+              className="mr-auto rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
               onClick={onDelete}
             >
               Delete KPI
@@ -425,7 +437,7 @@ export default function KpiEditorModal({
           ) : null}
           <button
             type="button"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600"
+            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             onClick={onClose}
           >
             Cancel
@@ -433,7 +445,7 @@ export default function KpiEditorModal({
           <button
             type="button"
             className="rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
-            disabled={saving}
+            disabled={saving || subjectPickerOpen}
             onClick={() => onSave(pendingFile)}
           >
             {saving ? "Saving..." : "Save KPI"}
@@ -441,9 +453,10 @@ export default function KpiEditorModal({
         </>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <SectionPanel compact icon="📋" title="Basics">
+      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
         <Field label="Type">
-          <select className={inputClass} value={form.kfs} onChange={(e) => update({ kfs: e.target.value })}>
+          <select className={selectClass} value={form.kfs} onChange={(e) => update({ kfs: e.target.value })}>
             {KFS_OPTIONS.map((o) => (
               <option key={o} value={o}>
                 {o}
@@ -451,7 +464,7 @@ export default function KpiEditorModal({
             ))}
           </select>
         </Field>
-        <div className="sm:col-span-2">
+        <div className="min-w-0">
           <Field label="KPI Name" required>
             <input
               className={inputClass}
@@ -463,25 +476,20 @@ export default function KpiEditorModal({
         </div>
       </div>
 
-      <Field
-        label="Subject"
-        required
-        hint="Exact subject name or full hierarchy path"
-      >
-        <input
-          className={inputClass}
-          placeholder="e.g. Company Success / Cash generation / EBITDA / Sales"
-          value={form.subject}
-          onChange={(e) => update({ subject: e.target.value })}
-        />
-        <span className="text-xs text-slate-400">
-          Must match an existing subject name or full hierarchy path exactly (case-insensitive).
-        </span>
-      </Field>
+      <SubjectTreePicker
+        tree={subjectTree}
+        subjectId={form.subject_node_id}
+        value={form.subject}
+        onChange={(node) => update({ subject: node.full_path || node.name, subject_node_id: String(node.id) })}
+        open={subjectPickerOpen}
+        onOpenChange={setSubjectPickerOpen}
+        loading={subjectsLoading}
+        error={subjectsError}
+      />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className={subjectPickerOpen ? "hidden" : "flex flex-wrap items-start gap-3"}>
         <Field label="Unit" required>
-          <select className={inputClass} value={form.unit} onChange={(e) => update({ unit: e.target.value })}>
+          <select className={selectClass} value={form.unit} onChange={(e) => update({ unit: e.target.value })}>
             <option value="">Select Unit</option>
             {withCurrentValue(UNIT_OPTIONS, form.unit).map((o) => (
               <option key={o} value={o}>
@@ -492,7 +500,7 @@ export default function KpiEditorModal({
         </Field>
         <Field label="Frequency" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.frequency}
             onChange={(e) => update({ frequency: e.target.value })}
           >
@@ -509,7 +517,7 @@ export default function KpiEditorModal({
         </Field>
         <Field label="Direction" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.target_direction}
             onChange={(e) => update({ target_direction: e.target.value })}
           >
@@ -522,46 +530,51 @@ export default function KpiEditorModal({
           </select>
         </Field>
       </div>
+      </SectionPanel>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-        <Field label="Min" required>
-          <select className={inputClass} value={form.min_type} onChange={(e) => changeMinType(e.target.value)}>
-            {MIN_MAX_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        {form.min_type === "Valeur a entrer" ? (
-          <Field label="Min Value" required>
-            <input className={inputClass} value={form.min} onChange={(e) => update({ min: e.target.value })} />
+      <div className={subjectPickerOpen ? "hidden" : "contents"}>
+      <SectionPanel compact icon="🎯" title="Thresholds">
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="flex max-w-full flex-wrap items-start gap-3">
+          <Field label="Min" required>
+            <select className={selectClass} value={form.min_type} onChange={(e) => changeMinType(e.target.value)}>
+              {MIN_MAX_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </Field>
-        ) : (
-          <div />
-        )}
-        <Field label="Max" required>
-          <select className={inputClass} value={form.max_type} onChange={(e) => changeMaxType(e.target.value)}>
-            {MIN_MAX_TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        {form.max_type === "Valeur a entrer" ? (
-          <Field label="Max Value" required>
-            <input className={inputClass} value={form.max} onChange={(e) => update({ max: e.target.value })} />
+          {form.min_type === "Valeur a entrer" ? (
+            <Field label="Min Value" required>
+              <input className={inputClass} value={form.min} onChange={(e) => update({ min: e.target.value })} />
+            </Field>
+          ) : null}
+        </div>
+        <div className="flex max-w-full flex-wrap items-start gap-3">
+          <Field label="Max" required>
+            <select className={selectClass} value={form.max_type} onChange={(e) => changeMaxType(e.target.value)}>
+              {MIN_MAX_TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </Field>
-        ) : (
-          <div />
-        )}
+          {form.max_type === "Valeur a entrer" ? (
+            <Field label="Max Value" required>
+              <input className={inputClass} value={form.max} onChange={(e) => update({ max: e.target.value })} />
+            </Field>
+          ) : null}
+        </div>
       </div>
+      </SectionPanel>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <SectionPanel compact icon="🏷️" title="Classification">
+      <div className="flex flex-wrap items-start gap-3">
         <Field label="Reactivity Status">
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.reactivity_status}
             onChange={(e) => update({ reactivity_status: e.target.value })}
           >
@@ -575,7 +588,7 @@ export default function KpiEditorModal({
         </Field>
         <Field label="Pricing Type">
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.pricing_type}
             onChange={(e) => update({ pricing_type: e.target.value })}
           >
@@ -589,7 +602,7 @@ export default function KpiEditorModal({
         </Field>
         <Field label="Importance">
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.importance}
             onChange={(e) => update({ importance: e.target.value })}
           >
@@ -603,7 +616,7 @@ export default function KpiEditorModal({
         </Field>
         <Field label="Need for responsiveness">
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.reactivity_need}
             onChange={(e) => update({ reactivity_need: e.target.value })}
           >
@@ -616,13 +629,13 @@ export default function KpiEditorModal({
           </select>
         </Field>
       </div>
+      </SectionPanel>
 
-      <SectionTitle>Calculation logic</SectionTitle>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <SectionPanel compact icon="🧮" title="Calculation logic">
+      <div className="flex flex-wrap items-start gap-3 [&>label]:max-w-full">
         <Field label="Calculation On" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.calculation_on}
             onChange={(e) => changeCalculationOn(e.target.value)}
           >
@@ -638,7 +651,7 @@ export default function KpiEditorModal({
           <>
             <Field label="Period Type">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.period_type}
                 onChange={(e) => changePeriodType(e.target.value)}
               >
@@ -652,7 +665,7 @@ export default function KpiEditorModal({
             </Field>
             <Field label="Number of Periods" required>
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.nombre_periode}
                 onChange={(e) => update({ nombre_periode: e.target.value })}
               >
@@ -668,12 +681,9 @@ export default function KpiEditorModal({
             </Field>
           </>
         ) : null}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field label="Calculation Mode" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.calculation_mode}
             onChange={(e) => update({ calculation_mode: e.target.value })}
           >
@@ -686,10 +696,10 @@ export default function KpiEditorModal({
           </select>
         </Field>
         {form.calculation_mode === "Ratio" ? (
-          <div className="sm:col-span-2">
+          <div className="max-w-full">
             <Field label="Reference KPI" required hint="Required for ratio">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.reference_kpi_id}
                 onChange={(e) => update({ reference_kpi_id: e.target.value })}
               >
@@ -709,12 +719,9 @@ export default function KpiEditorModal({
             </Field>
           </div>
         ) : null}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field label="Display Trend" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.display_trend}
             onChange={(e) =>
               update({ display_trend: e.target.value, regression: e.target.value === "Yes" ? form.regression || "1 week" : form.regression })
@@ -731,7 +738,7 @@ export default function KpiEditorModal({
         {form.display_trend === "Yes" ? (
           <Field label="Periods of Regression" required hint="Weeks">
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.regression}
               onChange={(e) => update({ regression: e.target.value })}
             >
@@ -745,7 +752,7 @@ export default function KpiEditorModal({
         ) : null}
         <Field label="Target Auto Adjust" required>
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.target_auto_adjustment}
             onChange={(e) => update({ target_auto_adjustment: e.target.value })}
           >
@@ -757,11 +764,13 @@ export default function KpiEditorModal({
           </select>
         </Field>
       </div>
+      </SectionPanel>
 
+      <SectionPanel compact icon="🗂️" title="Details">
       {roleOptions?.length ? (
         <Field label="Owner Role" hint="Optional">
           <select
-            className={inputClass}
+            className={selectClass}
             value={form.owner_role_id ?? ""}
             onChange={(e) => update({ owner_role_id: e.target.value })}
           >
@@ -785,46 +794,54 @@ export default function KpiEditorModal({
       </Field>
 
       <Field label="KPI File" hint="Upload any file type (max 20 MB)">
-        <input ref={fileInputRef} type="file" className={inputClass} onChange={handleFileChange} />
-        {form.file_url ? (
-          <span className="mt-1 text-xs text-slate-500">
-            Current file:{" "}
-            <a
-              className="break-all text-blue-600 underline"
-              href={form.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={form.file_name || undefined}
-            >
-              {form.file_name || form.file_url}
-            </a>
-          </span>
-        ) : null}
-        {pendingFile ? (
-          <span className="mt-1 text-xs text-slate-500">
-            Selected file: {pendingFile.name} ({formatKpiFileSize(pendingFile.size)})
-          </span>
-        ) : null}
+        <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3.5 py-3 dark:border-slate-700 dark:bg-slate-800/60">
+          <input ref={fileInputRef} type="file" className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-indigo-700 dark:text-slate-300" onChange={handleFileChange} />
+          {form.file_url ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Current file:{" "}
+              <a
+                className="break-all text-blue-600 underline dark:text-blue-400"
+                href={form.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                download={form.file_name || undefined}
+              >
+                {form.file_name || form.file_url}
+              </a>
+            </span>
+          ) : null}
+          {pendingFile ? (
+            <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+              Selected file: {pendingFile.name} ({formatKpiFileSize(pendingFile.size)})
+            </span>
+          ) : null}
+        </div>
       </Field>
+      </SectionPanel>
 
-      <SectionTitle>Tolerance</SectionTitle>
-      <div className="flex flex-wrap gap-6">
-        {TOLERANCE_TYPE_OPTIONS.map((o) => (
-          <label key={o} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <input
-              type="radio"
-              name="responsible_tolerance_type_radio"
-              value={o}
-              checked={form.tolerance_type === o}
-              onChange={() => changeToleranceType(o)}
-            />
-            {o}
-          </label>
-        ))}
+      <SectionPanel compact icon="⚖️" title="Tolerance">
+      <div className="inline-flex w-fit gap-1 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-800/60">
+        {TOLERANCE_TYPE_OPTIONS.map((o) => {
+          const active = form.tolerance_type === o;
+          return (
+            <button
+              key={o}
+              type="button"
+              onClick={() => changeToleranceType(o)}
+              className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+                active
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              }`}
+            >
+              {o}
+            </button>
+          );
+        })}
       </div>
 
       {form.tolerance_type === "Absolute" ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="High Limit" required>
             <input
               className={inputClass}
@@ -849,7 +866,7 @@ export default function KpiEditorModal({
       ) : null}
 
       {form.tolerance_type === "Relative" ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Up Tolerance" required>
             <input
               className={inputClass}
@@ -874,6 +891,8 @@ export default function KpiEditorModal({
           </Field>
         </div>
       ) : null}
+      </SectionPanel>
+      </div>
     </Modal>
   );
 }

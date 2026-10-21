@@ -125,20 +125,25 @@ export default function KpiEntryFormPage() {
 
   const kpis = useMemo(() => data?.kpis || [], [data]);
   const correctiveActionsEnabled = Boolean(data?.corrective_actions_enabled);
+  // Temporary (KPI_FORM_REQUIRE_CORRECTIVE_ACTION on the backend): corrective
+  // actions stay optional until the target allocation limits are fixed.
+  const correctiveActionsRequired =
+    correctiveActionsEnabled && Boolean(data?.corrective_actions_required);
 
   // Same gate the original applied in updateSubmitButtonState(): every value
-  // must be filled, and every KPI outside its limits must carry a corrective
-  // action with a root cause, a solution, a due date and an owner.
+  // must be filled, and -- when corrective actions are required -- every KPI
+  // outside its limits must carry a corrective action with a root cause, a
+  // solution, a due date and an owner.
   const blockingKpis = useMemo(
     () =>
       kpis.filter((kpi) => {
         const rawValue = values[kpi.allocation_id];
         if (String(rawValue ?? "").trim() === "") return true;
-        if (!correctiveActionsEnabled) return false;
+        if (!correctiveActionsRequired) return false;
         if (!isOutOfTarget(rawValue, kpi.low_limit, kpi.high_limit, kpi.good_direction)) return false;
         return !(actionsByKpi[kpi.allocation_id] || []).some(isCompleteCorrectiveAction);
       }),
-    [kpis, values, actionsByKpi, correctiveActionsEnabled]
+    [kpis, values, actionsByKpi, correctiveActionsRequired]
   );
 
   const handleStatusChange = useCallback((correctiveActionId, nextStatus) => {
@@ -363,14 +368,14 @@ export default function KpiEntryFormPage() {
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-slate-800">KPI Values ({kpis.length})</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#0078D7]/80 pb-2">
+            <h2 className="text-lg font-bold text-[#0078D7]">KPI Values ({kpis.length})</h2>
             <button
               type="button"
               onClick={() => setHelpOpen((open) => !open)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600"
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#0ea5f5] to-[#0078D7] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-500/25 transition hover:-translate-y-0.5"
             >
-              Help Support
+              📍 Help Support
             </button>
           </div>
 
@@ -415,6 +420,7 @@ export default function KpiEntryFormPage() {
                 actions={actionsByKpi[kpi.allocation_id] || []}
                 touched={touched}
                 correctiveActionsEnabled={correctiveActionsEnabled}
+                correctiveActionsRequired={correctiveActionsRequired}
                 defaultResponsible={data?.default_responsible || ""}
                 periodHeading={period.title}
                 onValueChange={(next) =>

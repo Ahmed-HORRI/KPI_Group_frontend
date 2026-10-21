@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Chart } from "react-chartjs-2";
 import {
   BarController,
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  Legend,
   LineController,
   LineElement,
   LinearScale,
   PointElement,
   Tooltip,
 } from "chart.js";
-import apiClient from "../../../api/client";
-import { EmptyState } from "./ui.jsx";
+import apiClient, { getApiErrorMessage } from "../../../api/client";
+import SelectMenu from "../../../components/SelectMenu.jsx";
+import { ArrowLeftIcon, ChartIcon, FactoryIcon, GlobeIcon, UserIcon } from "../../../components/icons.jsx";
+import { EmptyState, StatTile } from "./ui.jsx";
 
 ChartJS.register(
   BarController,
@@ -22,8 +25,14 @@ ChartJS.register(
   PointElement,
   CategoryScale,
   LinearScale,
-  Tooltip
+  Tooltip,
+  Legend
 );
+
+// Validated status palette (references/palette.md) -- reserved for
+// good/critical state, never reused as a categorical series color.
+const STATUS_GOOD = "#0ca30c";
+const STATUS_CRITICAL = "#d03b3b";
 
 // Port of the original page's "My KPI Analytics" section (loadKpiCharts).
 //
@@ -61,12 +70,11 @@ function getChartValueBandColor(value, lowLimit, highLimit, direction) {
   const isAboveUpper = upperBound !== null && numericValue > upperBound;
   const isBad = resolvedDirection === "down" ? isAboveUpper : isBelowLower;
 
-  return isBad ? "rgba(239, 68, 68, 0.88)" : "rgba(74, 222, 128, 0.88)";
+  return isBad ? STATUS_CRITICAL : STATUS_GOOD;
 }
 
 function getChartValueBorderColor(value, lowLimit, highLimit, direction) {
-  const color = getChartValueBandColor(value, lowLimit, highLimit, direction);
-  return color.includes("239, 68, 68") ? "rgba(220, 38, 38, 1)" : "rgba(22, 163, 74, 1)";
+  return getChartValueBandColor(value, lowLimit, highLimit, direction);
 }
 
 const kpiThresholdBandsPlugin = {
@@ -98,23 +106,26 @@ const kpiThresholdBandsPlugin = {
     chart.ctx.rect(area.left, area.top, area.right - area.left, area.bottom - area.top);
     chart.ctx.clip();
 
+    const BAND_CRITICAL = "rgba(208, 59, 59, 0.08)";
+    const BAND_GOOD = "rgba(12, 163, 12, 0.08)";
+
     if (lowerBound !== null && upperBound !== null) {
-      drawBand(yScale.max, upperBound, "rgba(254, 226, 226, 0.55)");
-      drawBand(upperBound, lowerBound, "rgba(220, 252, 231, 0.55)");
-      drawBand(lowerBound, yScale.min, "rgba(254, 226, 226, 0.55)");
+      drawBand(yScale.max, upperBound, BAND_CRITICAL);
+      drawBand(upperBound, lowerBound, BAND_GOOD);
+      drawBand(lowerBound, yScale.min, BAND_CRITICAL);
     } else if (upperBound !== null) {
-      drawBand(yScale.max, upperBound, "rgba(254, 226, 226, 0.55)");
-      drawBand(upperBound, yScale.min, "rgba(220, 252, 231, 0.55)");
+      drawBand(yScale.max, upperBound, BAND_CRITICAL);
+      drawBand(upperBound, yScale.min, BAND_GOOD);
     } else if (lowerBound !== null) {
-      drawBand(yScale.max, lowerBound, "rgba(220, 252, 231, 0.55)");
-      drawBand(lowerBound, yScale.min, "rgba(254, 226, 226, 0.55)");
+      drawBand(yScale.max, lowerBound, BAND_GOOD);
+      drawBand(lowerBound, yScale.min, BAND_CRITICAL);
     }
 
     chart.ctx.restore();
   },
 };
 
-function KpiChartCard({ row }) {
+function KpiChartCard({ row, darkMode }) {
   const sourceLabels = Array.isArray(row.labels) ? row.labels : [];
   const periodLabels = sourceLabels.map((_, index) => `Period ${index + 1}`);
   const values = Array.isArray(row.values) ? row.values : [];
@@ -161,10 +172,12 @@ function KpiChartCard({ row }) {
         barThickness: 26,
       },
       {
+        // Categorical slot 7 (violet) -- deliberately not red/green, which
+        // are reserved for the bar's good/critical status coloring above.
         type: "line",
         label: "Target",
         data: targetSeries,
-        borderColor: "rgba(239, 68, 68, 0.95)",
+        borderColor: "#4a3aa7",
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -172,10 +185,11 @@ function KpiChartCard({ row }) {
         borderDash: [6, 4],
       },
       {
+        // Categorical slot 2 (orange).
         type: "line",
         label: "High Limit",
         data: highLimitSeries,
-        borderColor: "rgba(245, 158, 11, 0.95)",
+        borderColor: "#eb6834",
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -183,10 +197,11 @@ function KpiChartCard({ row }) {
         borderDash: [8, 5],
       },
       {
+        // Categorical slot 1 (blue).
         type: "line",
         label: "Low Limit",
         data: lowLimitSeries,
-        borderColor: "rgba(59, 130, 246, 0.95)",
+        borderColor: "#2a78d6",
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -205,7 +220,22 @@ function KpiChartCard({ row }) {
         highLimit: row.highLimitValue,
         direction: row.targetDirection,
       },
-      legend: { display: false },
+      // 4 series on this chart -- a legend must always be present (never
+      // color-alone identity). Selective direct labels aren't practical on a
+      // dense monthly bar chart, so the legend carries identity here.
+      legend: {
+        display: true,
+        position: "bottom",
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          padding: 14,
+          color: darkMode ? "#cbd5e1" : "#52514e",
+          font: { size: 11, weight: "600" },
+          filter: (item) => item.text !== "Actual Value",
+        },
+      },
       tooltip: {
         mode: "index",
         intersect: false,
@@ -221,62 +251,147 @@ function KpiChartCard({ row }) {
     interaction: { mode: "nearest", axis: "x", intersect: false },
     scales: {
       x: {
-        title: { display: true, text: "Period", color: "#0f172a", font: { size: 13, weight: "700" } },
+        title: {
+          display: true,
+          text: "Period",
+          color: darkMode ? "#e2e8f0" : "#0f172a",
+          font: { size: 13, weight: "700" },
+        },
         grid: { display: false },
-        ticks: { color: "#64748b" },
+        ticks: { color: darkMode ? "#94a3b8" : "#64748b" },
       },
       y: {
         beginAtZero: false,
         min: axisMin,
         max: axisMax,
-        title: { display: true, text: "Value", color: "#0f172a", font: { size: 13, weight: "700" } },
-        ticks: { color: "#64748b" },
-        grid: { color: "rgba(148,163,184,0.15)" },
+        title: {
+          display: true,
+          text: "Value",
+          color: darkMode ? "#e2e8f0" : "#0f172a",
+          font: { size: 13, weight: "700" },
+        },
+        ticks: { color: darkMode ? "#94a3b8" : "#64748b" },
+        grid: { color: darkMode ? "rgba(148,163,184,0.1)" : "rgba(148,163,184,0.15)" },
       },
     },
   };
 
+  const latestValue = values.length ? values[values.length - 1] : null;
+  const latestIsBad =
+    latestValue !== null &&
+    getChartValueBandColor(latestValue, row.lowLimitValue, row.highLimitValue, row.targetDirection) ===
+      STATUS_CRITICAL;
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-base font-bold text-slate-900">{row.indicator_title || "Untitled KPI"}</h3>
-      <p className="mt-0.5 text-xs text-slate-400">
-        {row.indicator_sub_title || "Monthly KPI history"}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
-        <span className="rounded-full bg-red-50 px-2.5 py-1 text-red-600">
+    <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-bold text-slate-900 dark:text-white">
+            {row.indicator_title || "Untitled KPI"}
+          </h3>
+          <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500">
+            {row.indicator_sub_title || "Monthly KPI history"}
+          </p>
+        </div>
+        {latestValue !== null ? (
+          <span
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
+            style={{
+              backgroundColor: latestIsBad ? "rgba(208,59,59,0.10)" : "rgba(12,163,12,0.10)",
+              color: latestIsBad ? STATUS_CRITICAL : STATUS_GOOD,
+            }}
+          >
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: latestIsBad ? STATUS_CRITICAL : STATUS_GOOD }}
+            />
+            {latestIsBad ? "Off target" : "On target"}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2 px-5 pt-4 text-xs font-bold">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#4a3aa7]" />
           Target: {row.targetValue ?? "-"}
         </span>
-        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-600">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#eb6834]" />
           High Limit: {row.highLimitValue ?? "-"}
         </span>
-        <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-600">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#2a78d6]" />
           Low Limit: {row.lowLimitValue ?? "-"}
         </span>
       </div>
-      <div className="mt-4 h-64">
+
+      <div className="mt-1 h-64 px-3 pb-3">
         <Chart type="bar" data={data} options={options} plugins={[kpiThresholdBandsPlugin]} />
       </div>
     </div>
   );
 }
 
-export default function KpiChartsSection({ responsibleId }) {
+// Charts are added by pages of this size: "everyone" can mean 400+ charts.
+const PAGE_SIZE = 24;
+
+const OWN_FILTERS = { level: "own", scope_units: [], units: [], responsibles: [] };
+
+// Consecutive rows of the same responsible, in the server's order (unit, name).
+function groupByResponsible(rows) {
+  const groups = [];
+  rows.forEach((row) => {
+    const last = groups[groups.length - 1];
+    if (last && last.responsibleId === row.responsible_id) last.rows.push(row);
+    else groups.push({ responsibleId: row.responsible_id, name: row.responsible_name, unit: row.unit_name, rows: [row] });
+  });
+  return groups;
+}
+
+// "My KPI Analytics". Everyone sees their own KPIs; CEO, VP, plant / zone
+// managers and administrators can also pick a unit and a responsible of their
+// scope (the server decides the scope and enforces it).
+export default function KpiChartsSection({ responsibleId, darkMode }) {
+  const [filters, setFilters] = useState(null);
+  const [unitId, setUnitId] = useState("");
+  const [selected, setSelected] = useState("me"); // "me" | "all" | people_id
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient
+      .get(`/api/responsibles/${responsibleId}/kpi-analytics-filters`)
+      .then((res) => {
+        if (!cancelled) setFilters(res.data || OWN_FILTERS);
+      })
+      .catch(() => {
+        if (!cancelled) setFilters(OWN_FILTERS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [responsibleId]);
+
+  // The unit only narrows "all responsibles"; "my KPIs" ignores it.
+  const query = selected === "me" ? null : { responsible: selected, unit_id: unitId || undefined };
+  const queryKey = JSON.stringify(query);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setFailed(false);
+    setError("");
     apiClient
-      .get(`/api/responsibles/${responsibleId}/kpi-monthly-series`)
+      .get(`/api/responsibles/${responsibleId}/kpi-monthly-series`, { params: JSON.parse(queryKey) || {} })
       .then((res) => {
         if (cancelled) return;
         setRows(Array.isArray(res.data) ? res.data : []);
+        setVisibleCount(PAGE_SIZE);
       })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
+      .catch((err) => {
+        if (!cancelled) setError(getApiErrorMessage(err, "Failed to load KPI charts."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -284,29 +399,214 @@ export default function KpiChartsSection({ responsibleId }) {
     return () => {
       cancelled = true;
     };
-  }, [responsibleId]);
+  }, [responsibleId, queryKey]);
+
+  const ownerId = Number(responsibleId);
+  const canFilter = Boolean(filters) && filters.level !== "own";
+  const unitName = filters?.units.find((unit) => String(unit.unit_id) === unitId)?.unit_name || "";
+  const peopleInUnit = (filters?.responsibles || []).filter((person) => !unitId || String(person.unit_id) === unitId);
+
+  const unitOptions = [
+    { value: "", label: "All units" },
+    ...(filters?.units || []).map((unit) => ({ value: String(unit.unit_id), label: unit.unit_name })),
+  ];
+  // "My KPIs" and "all", then the people of the unit(s), grouped by unit.
+  const responsibleChoices = [
+    { value: "me", label: "My KPIs" },
+    {
+      value: "all",
+      label: unitName ? `All responsibles in ${unitName}` : "All responsibles",
+      description: String(peopleInUnit.length),
+    },
+    ...peopleInUnit
+      .filter((person) => person.people_id !== ownerId)
+      .map((person) => ({ value: String(person.people_id), label: person.full_name, group: person.unit_name || "Other" })),
+  ];
+  const selectedPerson = filters?.responsibles.find((person) => String(person.people_id) === selected);
+
+  const changeUnit = (value) => {
+    setUnitId(value);
+    if (selected === "me") {
+      // Picking a unit means browsing its responsibles.
+      if (value) setSelected("all");
+    } else if (selected !== "all" && value && String(selectedPerson?.unit_id) !== value) {
+      // The selected responsible is not in that unit.
+      setSelected("all");
+    }
+  };
+
+  const changeResponsible = (value) => {
+    setSelected(value);
+    if (value === "me") setUnitId("");
+  };
+
+  const stats = useMemo(() => {
+    let onTarget = 0;
+    let offTarget = 0;
+    let noReading = 0;
+    rows.forEach((row) => {
+      const values = Array.isArray(row.values) ? row.values : [];
+      const latest = values.length ? values[values.length - 1] : null;
+      if (latest === null || latest === undefined || latest === "") {
+        noReading += 1;
+        return;
+      }
+      const isBad =
+        getChartValueBandColor(latest, row.lowLimitValue, row.highLimitValue, row.targetDirection) ===
+        STATUS_CRITICAL;
+      if (isBad) offTarget += 1;
+      else onTarget += 1;
+    });
+    return { total: rows.length, onTarget, offTarget, noReading };
+  }, [rows]);
+
+  const responsibleCount = new Set(rows.map((row) => row.responsible_id)).size;
+  const subtitle =
+    selected === "me"
+      ? "Visual trends of KPI values by month for this responsible."
+      : selected === "all"
+        ? `Visual trends of KPI values by month for ${responsibleCount} responsible${responsibleCount === 1 ? "" : "s"}${
+            unitName ? ` in ${unitName}` : ""
+          }.`
+        : `Visual trends of KPI values by month for ${selectedPerson?.full_name || "this responsible"}.`;
+
+  const scopeLabel =
+    filters?.level === "all"
+      ? "All responsibles"
+      : filters?.scope_units.map((unit) => unit.unit_name).join(", ") || "";
+
+  // Several responsibles: one heading per responsible above their charts.
+  const showOwners = selected === "all";
+  const visibleRows = rows.slice(0, visibleCount);
+  const remaining = rows.length - visibleRows.length;
 
   return (
     <section>
-      <div className="mb-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-emerald-50 p-6 shadow-sm">
-        <h2 className="text-2xl font-black tracking-tight text-slate-900">My KPI Analytics</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Visual trends of KPI values by month for this responsible.
-        </p>
+      <div className="relative mb-5 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-emerald-200/45 blur-3xl dark:bg-emerald-500/10" />
+          <div className="absolute -top-24 right-48 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/10" />
+        </div>
+
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="relative h-12 w-12 shrink-0">
+              <span aria-hidden="true" className="absolute inset-x-2 top-4 -bottom-1.5 rounded-2xl bg-emerald-500/35 blur-md" />
+              <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-emerald-100 text-emerald-600 shadow-sm ring-1 ring-emerald-600/20 dark:from-slate-800 dark:to-emerald-950 dark:text-emerald-400 dark:ring-emerald-500/25">
+                <ChartIcon size={22} />
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-2xl font-semibold tracking-[-0.01em] text-slate-900 dark:text-white">My KPI Analytics</h2>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+            </div>
+          </div>
+          {canFilter && scopeLabel ? (
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs ring-1 ring-inset ring-emerald-600/15 dark:bg-emerald-500/10 dark:ring-emerald-400/20">
+              <GlobeIcon size={14} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="font-medium text-emerald-700/80 dark:text-emerald-300/80">Scope</span>
+              <span className="truncate font-semibold text-emerald-800 dark:text-emerald-200">{scopeLabel}</span>
+            </span>
+          ) : null}
+        </div>
+
+        {canFilter ? (
+          <div className="relative mt-6">
+            <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-50/80 p-2 ring-1 ring-inset ring-slate-200/70 sm:inline-flex sm:w-auto sm:max-w-full dark:bg-slate-800/40 dark:ring-slate-700/60">
+              <SelectMenu
+                icon={FactoryIcon}
+                label="Unit"
+                value={unitId}
+                options={unitOptions}
+                onChange={changeUnit}
+                searchable={unitOptions.length > 8}
+                searchPlaceholder="Search a unit..."
+                className="w-full sm:w-auto"
+              />
+              <SelectMenu
+                icon={UserIcon}
+                label="Responsible"
+                value={selected}
+                options={responsibleChoices}
+                onChange={changeResponsible}
+                searchable={responsibleChoices.length > 8}
+                searchPlaceholder="Search a responsible..."
+                className="w-full sm:w-auto"
+              />
+              {selected !== "me" ? (
+                <button
+                  type="button"
+                  onClick={() => changeResponsible("me")}
+                  className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-[#0078D7] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/40 dark:text-blue-400 dark:hover:bg-slate-800"
+                >
+                  <ArrowLeftIcon size={16} /> Back to my KPIs
+                </button>
+              ) : null}
+            </div>
+            {!filters.responsibles.length ? (
+              <p className="mt-2.5 px-1 text-xs text-slate-500 dark:text-slate-400">
+                No responsible has KPI results in your scope yet.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
+
+      {!loading && !error && rows.length ? (
+        <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+          <StatTile label="Tracked KPIs" value={stats.total} />
+          <StatTile label="On target" value={stats.onTarget} tone="green" />
+          <StatTile label="Off target" value={stats.offTarget} tone="red" />
+          <StatTile label="No reading" value={stats.noReading} tone="muted" />
+        </div>
+      ) : null}
 
       {loading ? (
         <EmptyState>Loading KPI charts...</EmptyState>
-      ) : failed ? (
-        <EmptyState>Failed to load KPI charts.</EmptyState>
+      ) : error ? (
+        <EmptyState>{error}</EmptyState>
       ) : !rows.length ? (
-        <EmptyState>No KPI history found for this responsible.</EmptyState>
+        <EmptyState>
+          {selected === "me" ? "No KPI history found for this responsible." : "No KPI history found for this selection."}
+        </EmptyState>
       ) : (
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-          {rows.map((row) => (
-            <KpiChartCard key={row.kpi_id} row={row} />
-          ))}
-        </div>
+        <>
+          {showOwners ? (
+            <div className="flex flex-col gap-8">
+              {groupByResponsible(visibleRows).map((group) => (
+                <div key={group.responsibleId}>
+                  <div className="mb-3 flex items-baseline gap-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">{group.name}</h3>
+                    {group.unit ? <span className="text-sm text-slate-500 dark:text-slate-400">{group.unit}</span> : null}
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                    {group.rows.map((row) => (
+                      <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} darkMode={darkMode} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+              {visibleRows.map((row) => (
+                <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} darkMode={darkMode} />
+              ))}
+            </div>
+          )}
+
+          {remaining > 0 ? (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:shadow-none dark:hover:bg-slate-700"
+              >
+                Show {Math.min(PAGE_SIZE, remaining)} more · {remaining} left
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </section>
   );

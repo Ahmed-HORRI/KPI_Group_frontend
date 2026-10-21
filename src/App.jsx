@@ -1,5 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout.jsx";
+import AppLayout from "./layouts/AppLayout.jsx";
+import { AuthProvider } from "./auth/AuthContext.jsx";
+import { RequireAdmin, RequireAuth, RequireOwnDashboard } from "./auth/RouteGuards.jsx";
+import LoginPage from "./pages/Auth/LoginPage.jsx";
+import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "./pages/Auth/ResetPasswordPage.jsx";
+import ChangePasswordPage from "./pages/Auth/ChangePasswordPage.jsx";
+import UserManagementPage from "./pages/Admin/UserManagementPage.jsx";
 import KpiAdminPage from "./pages/KPIs/KpiAdminPage.jsx";
 import KpiTrendsPage from "./pages/KPIs/KpiTrendsPage.jsx";
 import CeoReportPlantPage from "./pages/CeoReport/CeoReportPlantPage.jsx";
@@ -26,26 +34,49 @@ function ResponsibleKpiEditRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/kpi-admin" element={<KpiAdminPage />} />
-          <Route path="/kpi-trends" element={<KpiTrendsPage />} />
-          <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
-          <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
-          <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
-          <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
-          <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
-          <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
-          <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
-          <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
-          <Route path="/form" element={<KpiEntryFormPage />} />
-          <Route path="/responsible/:responsibleId/dashboard" element={<ResponsibleDashboardPage />} />
-          <Route path="/responsible/:responsibleId/kpis/:kpiId/edit" element={<ResponsibleKpiEditRedirect />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          {/* Sign-in pages */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+          {/* Open pages, as before -- including every page reached from an e-mail link. */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/form" element={<KpiEntryFormPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
+            <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
+            <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
+            <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
+            <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
+            <Route path="/kpi-admin" element={<KpiAdminPage />} />
+            <Route path="/kpi-trends" element={<KpiTrendsPage />} />
+            <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
+            <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
+            <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
+            <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
+          </Route>
+
+          {/* Sign-in required: the Responsible KPI Dashboard and the user administration. */}
+          <Route element={<RequireAuth />}>
+            <Route element={<AppLayout />}>
+              <Route path="/change-password" element={<ChangePasswordPage />} />
+              {/* Each user: their own dashboard only (id = their people_id) */}
+              <Route element={<RequireOwnDashboard />}>
+                <Route path="/responsible/:responsibleId/dashboard" element={<ResponsibleDashboardPage />} />
+                <Route path="/responsible/:responsibleId/kpis/:kpiId/edit" element={<ResponsibleKpiEditRedirect />} />
+              </Route>
+
+              {/* Administrators only */}
+              <Route element={<RequireAdmin />}>
+                <Route path="/admin/users" element={<UserManagementPage />} />
+              </Route>
+            </Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

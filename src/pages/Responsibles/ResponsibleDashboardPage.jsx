@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import { useTheme } from "../../theme/ThemeContext.jsx";
 import { ConfirmDialog } from "./components/ui.jsx";
 import KpiMatrix from "./components/KpiMatrix.jsx";
 import KpiDetailsModal from "./components/KpiDetailsModal.jsx";
@@ -37,7 +38,7 @@ import {
 //
 // Backend endpoints used (all pre-existing except the two noted):
 //   GET    /api/responsibles/:id/dashboard-context   (NEW -- roleOptions +
-//          allocationLookups, previously inlined into the page's markup)
+//          allocationLookups + subject hierarchy, previously inlined into the page's markup)
 //   GET    /api/responsibles/:id/kpis?include_all=1&search=
 //   GET    /api/responsibles/:id/kpis/:kpiId?include_all=1
 //   GET    /api/kpis/:kpiId
@@ -97,6 +98,9 @@ export default function ResponsibleDashboardPage() {
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
 
+  // Shared with the other signed-in pages (administration, password change).
+  const { darkMode, toggleDarkMode } = useTheme();
+
   const showToast = useCallback((message) => {
     setToast(message);
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
@@ -133,6 +137,15 @@ export default function ResponsibleDashboardPage() {
   );
   const responsibleName = context?.responsible?.name || "KPI Workspace";
   const dashboardResponsibleId = String(context?.responsible?.people_id || responsibleId);
+
+  // Report Dashboard (CEO report) is restricted to the CEO and the KPI admin --
+  // the same two people the original access was scoped to.
+  const REPORT_DASHBOARD_ALLOWED_NAMES = ["olivier spicker", "ahmed horri"];
+  const canViewReportDashboard = REPORT_DASHBOARD_ALLOWED_NAMES.includes(
+    String(responsibleName || "").trim().toLowerCase()
+  );
+  const [reportPlantPickerOpen, setReportPlantPickerOpen] = useState(false);
+  const reportPlantOptions = ctx.lookups.plants || [];
 
   // ---- view persistence ----
   useEffect(() => {
@@ -512,6 +525,8 @@ export default function ResponsibleDashboardPage() {
 
     const validationError = validateParameterForm(ctx, formForSave, allocationUnitState, {
       lockedUnitId: allocationLockedUnitId,
+      editMode: allocationEditMode,
+      editAllocations: allocationEditRows,
     });
     if (validationError) {
       showToast(validationError);
@@ -527,6 +542,7 @@ export default function ResponsibleDashboardPage() {
     const payload = buildParameterPayload(ctx, formForSave, allocationUnitState, {
       lockedUnitId: allocationLockedUnitId,
       editMode: allocationEditMode,
+      editAllocations: allocationEditRows,
       kpiCatalog,
       existingAllocationIds,
     });
@@ -621,72 +637,163 @@ export default function ResponsibleDashboardPage() {
     });
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <aside className="hidden w-72 shrink-0 flex-col justify-between bg-slate-900 p-6 text-slate-300 lg:flex">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col justify-between overflow-y-auto bg-slate-900 p-6 text-slate-300 lg:flex">
         <div>
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 text-lg font-black text-white">
-              K
-            </div>
-            <div>
-              <h2 className="text-lg font-black text-white">KPI Suite</h2>
-              <p className="text-xs text-slate-400">Performance workspace</p>
-            </div>
+          <div className="mb-8 flex items-center justify-center rounded-2xl bg-white px-4 py-3 shadow-lg shadow-black/20">
+            <img src="/avocarbon-logo.png" alt="AVOCarbon" className="h-8 w-auto object-contain" />
           </div>
 
-          <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-            Navigation
-          </div>
-          <nav className="flex flex-col gap-1.5">
+          <div className="mb-3 flex flex-col gap-2">
             <button
               type="button"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition hover:bg-slate-800 hover:text-white"
+              className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 px-3 py-2.5 text-left text-sm font-bold text-white shadow-lg shadow-indigo-900/30 transition hover:-translate-y-0.5"
               onClick={openCreateKpiModal}
             >
-              <span>➕</span>
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-xs">+</span>
               <span>Create KPI</span>
             </button>
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.view}
-                type="button"
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                  view === item.view
-                    ? "bg-slate-800 text-white"
-                    : "hover:bg-slate-800 hover:text-white"
-                }`}
-                onClick={() => setView(item.view)}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
             <button
               type="button"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition hover:bg-slate-800 hover:text-white"
+              className="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
               onClick={openCreateAllocationModal}
             >
-              <span>🧭</span>
-              <span>Create KPI Target Allocation</span>
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 text-xs">🧭</span>
+              <span>Create Target Allocation</span>
             </button>
+          </div>
+
+          <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+            Navigation
+          </div>
+          <nav className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => {
+              const active = view === item.view;
+              return (
+                <button
+                  key={item.view}
+                  type="button"
+                  className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    active ? "bg-slate-800 text-white" : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
+                  }`}
+                  onClick={() => setView(item.view)}
+                >
+                  {active ? (
+                    <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-indigo-400 to-cyan-400" />
+                  ) : null}
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+            Other Dashboards
+          </div>
+          <nav className="flex flex-col gap-1">
+            <Link
+              to={`/kpi-training-dashboard?search=${encodeURIComponent(responsibleName || "")}`}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
+            >
+              <span>🎓</span>
+              <span>Training Session Dashboard</span>
+            </Link>
+            <Link
+              to={`/form?responsible_id=${encodeURIComponent(dashboardResponsibleId)}`}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
+            >
+              <span>📝</span>
+              <span>KPI Submission Dashboard</span>
+            </Link>
+            {canViewReportDashboard ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setReportPlantPickerOpen((current) => !current)}
+                  aria-expanded={reportPlantPickerOpen}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
+                >
+                  <span>📑</span>
+                  <span className="flex-1">Report Dashboard</span>
+                  <span className={`text-xs transition-transform ${reportPlantPickerOpen ? "rotate-90" : ""}`}>▸</span>
+                </button>
+                {reportPlantPickerOpen ? (
+                  <div className="mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-800 bg-slate-800/60 p-1.5">
+                    {reportPlantOptions.length ? (
+                      reportPlantOptions.map((plant) => (
+                        <Link
+                          key={plant.value}
+                          to={`/ceo-report/plants/${encodeURIComponent(plant.value)}`}
+                          className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white"
+                        >
+                          {plant.label}
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-slate-500">No plants found.</div>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </nav>
         </div>
 
-        <div className="rounded-2xl bg-slate-800/60 p-4">
-          <h4 className="text-sm font-bold text-white">Responsible Workspace</h4>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
-            Manage KPI definitions, update targets and keep your performance indicators organized in
-            one modern dashboard.
-          </p>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/40 px-3 py-2.5">
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <span>{darkMode ? "🌙" : "☀️"}</span>
+              Dark Mode
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={darkMode}
+              aria-label="Toggle dark mode"
+              onClick={toggleDarkMode}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+                darkMode ? "bg-indigo-500" : "bg-slate-700"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  darkMode ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-4">
+            <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-xs font-black text-white">
+              {(responsibleName || "?")
+                .split(" ")
+                .map((part) => part[0])
+                .filter(Boolean)
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-bold text-white">{responsibleName}</div>
+              <div className="text-[11px] text-slate-500">Responsible workspace</div>
+            </div>
+          </div>
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              Manage KPI definitions, update targets and keep your performance indicators organized in
+              one modern dashboard.
+            </p>
+          </div>
         </div>
       </aside>
 
       <main className="min-w-0 flex-1 p-6 lg:p-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             Responsible KPI Dashboard
           </h1>
-          <p className="mt-2 max-w-4xl text-sm text-slate-500">
+          <p className="mt-2 max-w-4xl text-sm text-slate-500 dark:text-slate-400">
             Modern KPI workspace for {responsibleName}. KPI creation stays linked to this
             responsible, while target allocation consulting can review and manage all allocations.
           </p>
@@ -700,8 +807,8 @@ export default function ResponsibleDashboardPage() {
               type="button"
               className={`rounded-xl border px-3 py-2 text-xs font-bold ${
                 view === item.view
-                  ? "border-blue-300 bg-blue-50 text-blue-700"
-                  : "border-slate-200 bg-white text-slate-600"
+                  ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300"
+                  : "border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
               }`}
               onClick={() => setView(item.view)}
             >
@@ -711,7 +818,7 @@ export default function ResponsibleDashboardPage() {
         </div>
 
         {contextError ? (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             {contextError}
           </div>
         ) : null}
@@ -738,12 +845,11 @@ export default function ResponsibleDashboardPage() {
           />
         ) : null}
 
-        {view === "my-kpis" ? <KpiChartsSection responsibleId={responsibleId} /> : null}
+        {view === "my-kpis" ? <KpiChartsSection responsibleId={responsibleId} darkMode={darkMode} /> : null}
 
         {view === "consult-target-allocation" ? (
           <TargetAllocationMatrix
             sourceRows={allocationRows}
-            lookups={ctx.lookups}
             search={allocationSearch}
             onSearchChange={setAllocationSearch}
             expandedKeys={expandedAllocationKeys}
@@ -765,6 +871,9 @@ export default function ResponsibleDashboardPage() {
           saving={kpiSaving}
           referenceKpiRows={kpiCatalog}
           roleOptions={ctx.roleOptions}
+          subjectTree={context?.subject_hierarchy || []}
+          subjectsLoading={!context && !contextError}
+          subjectsError={contextError}
           responsibleName={responsibleName}
           pendingFile={kpiPendingFile}
           setPendingFile={setKpiPendingFile}

@@ -1,11 +1,17 @@
 import { useMemo } from "react";
 import {
   DeleteIcon,
+  DuplicateIcon,
   EditIcon,
   EmptyState,
+  GroupToggle,
   IconButton,
+  StatTile,
+  StatusPill,
   ViewIcon,
   inputClass,
+  toneForDirection,
+  toneForStatus,
 } from "./ui.jsx";
 import { formatParameterDisplayValue, getLastPathSegment } from "./formatting.js";
 
@@ -116,6 +122,11 @@ export default function KpiMatrix({
   const subjectGroups = useMemo(() => groupKpiRowsBySubject(filteredRows), [filteredRows]);
   const totalKpiCount = sourceRows.length;
   const visibleCount = filteredRows.length;
+  const ownedCount = useMemo(
+    () => sourceRows.filter((row) => isOwned(row)).length,
+    [sourceRows, isOwned]
+  );
+  const allSubjectCount = useMemo(() => groupKpiRowsBySubject(sourceRows).length, [sourceRows]);
 
   const footerText =
     visibleCount === totalKpiCount
@@ -124,10 +135,10 @@ export default function KpiMatrix({
 
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-sm">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">KPI Matrix</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">KPI Matrix</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             View and manage all KPI definitions with direct visibility on KPI name, KPI subject, KPI
             code, unit, direction, and actions.
           </p>
@@ -141,9 +152,18 @@ export default function KpiMatrix({
         </button>
       </div>
 
+      {!loading ? (
+        <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+          <StatTile label="Total KPIs" value={totalKpiCount} />
+          <StatTile label="Subjects" value={allSubjectCount} tone="indigo" />
+          <StatTile label="My KPIs" value={ownedCount} tone="blue" />
+          <StatTile label="Consult only" value={totalKpiCount - ownedCount} tone="muted" />
+        </div>
+      ) : null}
+
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Search KPI
           </label>
           <input
@@ -154,7 +174,7 @@ export default function KpiMatrix({
           />
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             KPI name
           </label>
           <select
@@ -171,7 +191,7 @@ export default function KpiMatrix({
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Subject
           </label>
           <select
@@ -194,10 +214,10 @@ export default function KpiMatrix({
       ) : !visibleCount ? (
         <EmptyState>No KPI found.</EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3">KPI Name</th>
                   <th className="px-4 py-3">KPI Subject</th>
@@ -227,7 +247,7 @@ export default function KpiMatrix({
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-500">
             <span>{footerText}</span>
             <span>KPI definition matrix grouped by subject</span>
           </div>
@@ -250,24 +270,27 @@ function ExpandableGroup({
 }) {
   return (
     <>
-      <tr className="border-t border-slate-100 bg-slate-50/60">
+      <tr className="border-t border-slate-100 bg-slate-50/60 dark:border-slate-800 dark:bg-slate-800/40">
         <td colSpan={5} className="px-2 py-0">
           <button
             type="button"
             onClick={onToggle}
             aria-expanded={isExpanded}
-            className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-slate-100/70"
+            className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-slate-100/70 dark:hover:bg-slate-800/70"
           >
-            <span className="text-slate-400">{isExpanded ? "▾" : "▸"}</span>
+            <GroupToggle expanded={isExpanded} />
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-sm dark:bg-blue-500/10">
+              📁
+            </span>
             <span className="flex-1">
-              <span className="block font-bold text-slate-800">
+              <span className="block font-bold text-slate-800 dark:text-white">
                 {group.subject_name || "No KPI hierarchy attached"}
               </span>
-              <span className="block text-xs text-slate-400">
+              <span className="block text-xs text-slate-400 dark:text-slate-500">
                 {group.subject_path || "No KPI hierarchy attached"}
               </span>
             </span>
-            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-500 shadow-sm">
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-500 shadow-sm dark:bg-slate-700 dark:text-slate-300">
               {group.kpi_count} KPI{group.kpi_count === 1 ? "" : "s"}
             </span>
           </button>
@@ -277,53 +300,58 @@ function ExpandableGroup({
         ? group.rows.map((row) => {
             const owned = isOwned(row);
             return (
-              <tr key={row.kpi_id} className="border-t border-slate-100 hover:bg-slate-50">
+              <tr key={row.kpi_id} className="border-t border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50">
                 <td className="px-4 py-3 align-top">
-                  <div className="font-semibold text-slate-800">
-                    {row.indicator_sub_title || "Untitled KPI"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-800 dark:text-white">
+                      {row.indicator_sub_title || "Untitled KPI"}
+                    </span>
+                    {row.status ? <StatusPill tone={toneForStatus(row.status)}>{row.status}</StatusPill> : null}
+                    {owned ? (
+                      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        Mine
+                      </span>
+                    ) : null}
                   </div>
-                  <div className="text-xs text-slate-400">
-                    {[
-                      row.status ? `Status: ${row.status}` : "",
-                      row.frequency ? `Frequency: ${row.frequency}` : "",
-                      owned ? "My KPI" : "Visible in consult mode",
-                    ]
-                      .filter(Boolean)
-                      .join(" • ") || "No KPI details"}
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                    {row.frequency ? `Frequency: ${row.frequency}` : "No frequency set"}
                   </div>
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <div className="font-semibold text-slate-700">
+                  <div className="font-semibold text-slate-700 dark:text-slate-200">
                     {getKpiSubjectDisplayName(row) || "No subject"}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-400 dark:text-slate-500">
                     {getKpiSubjectPath(row) || "No KPI hierarchy attached"}
                   </div>
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <div className="font-semibold text-slate-700">{row.unit || "-"}</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="font-semibold text-slate-700 dark:text-slate-200">{row.unit || "-"}</div>
+                  <div className="text-xs text-slate-400 dark:text-slate-500">
                     {row.target !== null && row.target !== undefined && String(row.target).trim() !== ""
                       ? `Target: ${formatParameterDisplayValue(row.target)}`
                       : "No unit target"}
                   </div>
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <div className="font-semibold text-slate-700">{row.target_direction || "-"}</div>
-                  <div className="text-xs text-slate-400">
+                  <StatusPill tone={toneForDirection(row.target_direction)}>
+                    {row.target_direction || null}
+                  </StatusPill>
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     {row.target_auto_adjustment
                       ? `Auto adjust: ${row.target_auto_adjustment}`
                       : "No direction setting"}
                   </div>
                 </td>
                 <td className="px-4 py-3 align-top">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-1.5 rounded-xl bg-slate-50/80 p-1 dark:bg-slate-800/60">
                     <IconButton
                       title="Duplicate KPI"
                       tone="slate"
                       disabled={String(duplicatingId) === String(row.kpi_id)}
                       onClick={() => onDuplicate(row.kpi_id)}
                     >
+                      <DuplicateIcon />
                       Duplicate
                     </IconButton>
                     <IconButton title="View KPI details" tone="blue" onClick={() => onView(row.kpi_id)}>

@@ -1,0 +1,161 @@
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { getHomePath } from "../auth/RouteGuards";
+import Avatar from "../components/Avatar.jsx";
+import DropdownMenu from "../components/DropdownMenu.jsx";
+import { ChevronDownIcon, DashboardIcon, KeyIcon, LogoutIcon, MoonIcon, ShieldIcon, SunIcon } from "../components/icons.jsx";
+import { ThemeProvider, useTheme } from "../theme/ThemeContext.jsx";
+import { getRoleMeta } from "../constants/userRoles";
+
+function UserMenu() {
+  const { user, isAdmin, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
+  const navigate = useNavigate();
+  const displayName = user?.full_name || user?.email || "";
+
+  const signOut = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <DropdownMenu
+      label={`Account menu for ${displayName}`}
+      width={300}
+      renderTrigger={({ ref, open, props }) => (
+        <button
+          ref={ref}
+          type="button"
+          {...props}
+          className={`flex items-center gap-2.5 rounded-full border bg-white py-1 pl-1 pr-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 dark:bg-slate-800 dark:text-slate-200 dark:shadow-none dark:hover:bg-slate-700 dark:focus-visible:ring-blue-500/20 ${
+            open
+              ? "border-blue-200 ring-4 ring-blue-50 dark:border-blue-500/40 dark:ring-blue-500/15"
+              : "border-slate-200 dark:border-slate-700"
+          }`}
+        >
+          <Avatar name={displayName} seed={user?.email} size="sm" />
+          <span className="hidden max-w-[180px] truncate sm:inline">{displayName}</span>
+          <ChevronDownIcon size={16} className={`text-slate-400 transition dark:text-slate-500 ${open ? "rotate-180" : ""}`} />
+        </button>
+      )}
+      header={
+        <div className="flex items-center gap-3">
+          <Avatar name={displayName} seed={user?.email} size="lg" />
+          <div className="min-w-0">
+            <div className="truncate text-sm font-bold text-slate-900 dark:text-white">{user?.full_name}</div>
+            <div className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</div>
+            <span
+              className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isAdmin
+                  ? "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300"
+                  : "bg-slate-200/70 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+              }`}
+            >
+              {isAdmin ? <ShieldIcon size={11} /> : null}
+              {getRoleMeta(user?.role).label}
+            </span>
+          </div>
+        </div>
+      }
+      sections={[
+        {
+          key: "navigation",
+          items: [
+            user?.people_id
+              ? {
+                  key: "dashboard",
+                  label: "My KPI dashboard",
+                  description: "Your KPIs and target allocations",
+                  icon: DashboardIcon,
+                  tone: "brand",
+                  to: `/responsible/${user.people_id}/dashboard`,
+                }
+              : null,
+            isAdmin
+              ? {
+                  key: "admin",
+                  label: "User administration",
+                  description: "Accounts, roles and access",
+                  icon: ShieldIcon,
+                  to: "/admin/users",
+                }
+              : null,
+            {
+              key: "password",
+              label: "Change password",
+              description: "Signs out your other devices",
+              icon: KeyIcon,
+              to: "/change-password",
+            },
+          ],
+        },
+        {
+          key: "appearance",
+          items: [
+            {
+              key: "theme",
+              label: darkMode ? "Light mode" : "Dark mode",
+              description: darkMode ? "Switch back to the light theme" : "Easier on the eyes in low light",
+              icon: darkMode ? SunIcon : MoonIcon,
+              onSelect: toggleDarkMode,
+            },
+          ],
+        },
+        {
+          key: "session",
+          items: [{ key: "logout", label: "Log out", icon: LogoutIcon, tone: "danger", onSelect: signOut }],
+        },
+      ]}
+    />
+  );
+}
+
+const navLinkClass = ({ isActive }) =>
+  `rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+    isActive
+      ? "bg-blue-50 text-[#0078D7] dark:bg-blue-500/10 dark:text-blue-300"
+      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+  }`;
+
+// Layout of the pages that require a session: a slim top bar with the
+// signed-in user, above the page itself. They share one light / dark theme.
+export default function AppLayout() {
+  return (
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
+  );
+}
+
+function AppShell() {
+  const { user, isAdmin } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <Link to={getHomePath(user)} className="flex items-center gap-2.5">
+              <img src="/favicon.ico" alt="" className="h-7 w-7" />
+              <span className="text-sm font-black tracking-tight text-slate-800 dark:text-white">KPI Manager</span>
+            </Link>
+            <nav className="ml-2 hidden items-center gap-1 sm:flex">
+              {user?.people_id ? (
+                <NavLink to={`/responsible/${user.people_id}/dashboard`} className={navLinkClass}>
+                  My KPI dashboard
+                </NavLink>
+              ) : null}
+              {isAdmin ? (
+                <NavLink to="/admin/users" className={navLinkClass}>
+                  Administration
+                </NavLink>
+              ) : null}
+            </nav>
+          </div>
+          <UserMenu />
+        </div>
+      </header>
+      <Outlet />
+    </div>
+  );
+}

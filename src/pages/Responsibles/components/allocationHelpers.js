@@ -287,6 +287,67 @@ export function getPeopleAssignmentScopeId(scopeKind, scopeId, peopleId) {
   return `${normalizedScopeKind}:${normalizedScopeId}:people:${normalizedPeopleId}`;
 }
 
+// Unit rows of a role holder (or of one edited allocation) carry their own scope id, so people of the same unit
+// never share a target; plain unit rows (no role selected) stay indexed by unit id.
+export function getParameterRowScopeId(row) {
+  const rowKind = String(row?.row_kind || "unit");
+  if (rowKind !== "unit") return String(row?.value || "").trim();
+  if (row?.people_id || row?.allocation_row) return String(row?.value || "").trim();
+
+  return String(row?.unit_id || row?.value || "").trim();
+}
+
+// Edited Multisite allocations -> row scope id. The first allocation of a unit + person uses that person's row;
+// another live allocation for the same unit + person (e.g. Inactive without end date) gets its own row,
+// so it is neither hidden nor deleted on save.
+export function getParameterMultisiteAllocationScopeIds(allocations = []) {
+  const scopeIdByAllocationId = new Map();
+  const usedScopeIds = new Set();
+
+  (Array.isArray(allocations) ? allocations : [])
+    .filter((allocation) => String(allocation?.kpi_type || "").trim().toLowerCase() === "multisite")
+    .sort(
+      (left, right) =>
+        Number(left?.kpi_target_allocation_id || 0) - Number(right?.kpi_target_allocation_id || 0)
+    )
+    .forEach((allocation) => {
+      const allocationId = String(allocation?.kpi_target_allocation_id || "").trim();
+      const unitId = String(allocation?.plant_id || allocation?.unit_id || "").trim();
+      if (!allocationId || !unitId) return;
+
+      const peopleId = String(allocation?.set_by_people_id || "").trim();
+      const baseScopeId = peopleId ? getPeopleAssignmentScopeId("unit", unitId, peopleId) : unitId;
+      const scopeId = usedScopeIds.has(baseScopeId)
+        ? `${baseScopeId}:allocation:${allocationId}`
+        : baseScopeId;
+
+      usedScopeIds.add(scopeId);
+      scopeIdByAllocationId.set(allocationId, scopeId);
+    });
+
+  return scopeIdByAllocationId;
+}
+
+const endedInactiveAssignmentKeysCache = new WeakMap();
+
+// Unit + person whose target for this KPI was deactivated with an end date (Inactive + target_end_date).
+export function isParameterEndedInactiveAssignment(lookups, kpiId, unitId, peopleId) {
+  const endedInactiveAllocations = Array.isArray(lookups?.endedInactiveAllocations)
+    ? lookups.endedInactiveAllocations
+    : [];
+  let keys = endedInactiveAssignmentKeysCache.get(endedInactiveAllocations);
+  if (!keys) {
+    keys = new Set(
+      endedInactiveAllocations.map((row) => `${row.kpi_id}:${row.unit_id}:${row.people_id}`)
+    );
+    endedInactiveAssignmentKeysCache.set(endedInactiveAllocations, keys);
+  }
+
+  return keys.has(
+    `${String(kpiId || "").trim()}:${String(unitId || "").trim()}:${String(peopleId || "").trim()}`
+  );
+}
+
 export function inferParameterRoleIdFromAllocation(lookups, row, rows = []) {
   const sourceRows = [row, ...(Array.isArray(rows) ? rows : [])];
   for (const allocationRow of sourceRows) {
@@ -311,6 +372,7 @@ export function inferParameterRoleIdFromAllocation(lookups, row, rows = []) {
 // the allocations being edited.
 export function initializeParameterUnitTargetState(rows = []) {
   let unitState = {};
+  const multisiteScopeIds = getParameterMultisiteAllocationScopeIds(rows);
 
   (Array.isArray(rows) ? rows : []).forEach((row) => {
     const isProductLine = String(row?.kpi_type || "").trim().toLowerCase() === "product line";
@@ -351,16 +413,21 @@ export function initializeParameterUnitTargetState(rows = []) {
     if (normalizedKpiType === "role") {
       scopeType = "role";
       scopeId = getRoleRowScopeId(row?.plant_id || row?.unit_id, peopleId);
-    } else if (row?.product_line_id) {
+    } else if (row?.product_line_id && normalizedKpiType !== "multisite") {
       scopeType = "product_line";
       scopeId = String(row.product_line_id);
     } else if (row?.zone_id) {
       scopeType = "zone";
       scopeId = getPeopleAssignmentScopeId("zone", row.zone_id, peopleId);
     } else {
-      // Multisite / unit targets are indexed directly by unit id.
+      // Multisite targets are indexed by unit + person (one row per role holder, one more per extra allocation);
+      // other unit targets stay indexed by unit id.
       scopeType = "unit";
-      scopeId = String(row?.plant_id ?? row?.unit_id ?? "").trim();
+      const unitId = String(row?.plant_id ?? row?.unit_id ?? "").trim();
+      scopeId =
+        normalizedKpiType === "multisite"
+          ? multisiteScopeIds.get(String(row?.kpi_target_allocation_id || "").trim()) || unitId
+          : unitId;
     }
 
     if (!scopeId) return;
@@ -385,7 +452,53 @@ export function initializeParameterUnitTargetState(rows = []) {
 // Visible matrix rows per scope
 // ---------------------------------------------------------------------------
 
-export function getParameterVisibleUnitRows(ctx, form, { lockedUnitId = "" } = {}) {
+// Edit: a plant of the opened card lists only its allocation owners (Chennai Brushes -> Suresh only);
+// another plant is listed like in Create only while this KPI still has a live target there (no Frankfurt).
+// Create: every role holder, except those whose target for this KPI ended (Inactive + end date).
+export function getParameterVisibleUnitRows(
+  ctx,
+  form,
+  { lockedUnitId = "", editMode = false, editAllocations = [], unitState = {} } = {}
+) {
+  const rows = getAllParameterVisibleUnitRows(ctx, form, { lockedUnitId, editMode, editAllocations });
+  const kpiId = String(form?.parameter_kpi_id || "").trim();
+  const editedUnitIds = editMode
+    ? new Set(
+        (editAllocations || [])
+          .map((allocation) => String(allocation?.plant_id || allocation?.unit_id || "").trim())
+          .filter(Boolean)
+      )
+    : null;
+  // Plants where this KPI still has a live target (GET .../kpi-objects/:id -> live_unit_ids).
+  const liveUnitIds =
+    editMode && Array.isArray(form?.parameter_live_unit_ids)
+      ? new Set(
+          form.parameter_live_unit_ids.map((unitId) => String(unitId || "").trim()).filter(Boolean)
+        )
+      : null;
+
+  return rows.filter((row) => {
+    if (!row?.people_id || !row?.unit_id) return true;
+
+    const rowKind = row.row_kind || "unit";
+    const unitId = String(row.unit_id).trim();
+    const state = getParameterUnitState(unitState, rowKind, getParameterRowScopeId(row));
+    if (String(state.kpi_target_allocation_id ?? "").trim()) return true;
+
+    if (editedUnitIds && rowKind === "unit") {
+      if (editedUnitIds.has(unitId)) return false;
+      if (liveUnitIds && !liveUnitIds.has(unitId)) return false;
+    }
+
+    return !kpiId || !isParameterEndedInactiveAssignment(ctx.lookups, kpiId, unitId, row.people_id);
+  });
+}
+
+function getAllParameterVisibleUnitRows(
+  ctx,
+  form,
+  { lockedUnitId = "", editMode = false, editAllocations = [] } = {}
+) {
   const { lookups, roleOptions } = ctx;
   const scopeKind = getParameterScopeKind(form);
 
@@ -500,7 +613,7 @@ export function getParameterVisibleUnitRows(ctx, form, { lockedUnitId = "" } = {
   const normalizedRoleId = getNormalizedParameterRoleId(form.parameter_role_id);
 
   if (normalizedRoleId) {
-    return (lookups.peopleRoleAssignments || [])
+    const roleHolderRows = (lookups.peopleRoleAssignments || [])
       .filter((a) => String(a.role_id || "").trim() === normalizedRoleId)
       .filter((a) => String(a.unit_id || "").trim())
       .filter((a) => !selectedUnitTypeId || String(a.unit_type_id || "").trim() === selectedUnitTypeId)
@@ -537,6 +650,60 @@ export function getParameterVisibleUnitRows(ctx, form, { lockedUnitId = "" } = {
         };
       })
       .filter(Boolean);
+
+    // One row per unit + person, even when the person holds the role twice in the same unit.
+    const listedScopeIds = new Set();
+    const rows = roleHolderRows.filter((row) => {
+      if (listedScopeIds.has(row.value)) return false;
+      listedScopeIds.add(row.value);
+      return true;
+    });
+
+    if (!editMode) return rows;
+
+    // While editing, each live allocation keeps its own row even if its owner no longer holds the role
+    // or already has another allocation at that unit; without a row it would be missing from the save and deleted.
+    const allocationScopeIds = getParameterMultisiteAllocationScopeIds(editAllocations);
+    (editAllocations || []).forEach((allocation) => {
+      const scopeId = allocationScopeIds.get(String(allocation?.kpi_target_allocation_id || "").trim());
+      if (!scopeId || listedScopeIds.has(scopeId)) return;
+      listedScopeIds.add(scopeId);
+
+      const unitId = String(allocation?.plant_id || allocation?.unit_id || "").trim();
+      const peopleId = String(allocation?.set_by_people_id || "").trim();
+      const unit = getParameterUnitById(lookups, unitId) || {};
+      const responsibleLabel = peopleId ? getParameterPeopleLabel(lookups, peopleId) : "";
+
+      rows.push({
+        row_kind: "unit",
+        allocation_row: true,
+        value: scopeId,
+        unit_id: unitId,
+        people_id: peopleId,
+        label: unit.label || allocation.unit_name || allocation.plant_name || `Unit ${unitId}`,
+        unit_type_id: unit.unit_type_id || allocation.unit_type_id || null,
+        unit_type_name: unit.unit_type_name || "",
+        selling_currency: unit.selling_currency || "",
+        operating_currency: unit.operating_currency || "",
+        local_currency:
+          unit.selling_currency || unit.operating_currency || allocation.local_currency || "",
+        responsible_people_id: peopleId,
+        responsible_label: responsibleLabel,
+        responsibles: peopleId
+          ? [
+              {
+                people_id: peopleId,
+                label: responsibleLabel,
+                role_id: normalizedRoleId,
+                role_name: "",
+                is_primary: false,
+              },
+            ]
+          : [],
+      });
+    });
+
+    return rows;
   }
 
   const selectedUnits = getParameterUnitsForSelectedUnitType(ctx, form, {
@@ -887,7 +1054,7 @@ export function applyRoleApplyAllPatch(unitState, visibleRows = [], patch = {}) 
 // ---------------------------------------------------------------------------
 
 export function getParameterUnitAllocationRows(ctx, form, unitState, options = {}) {
-  const { lockedUnitId = "", editMode = false, kpiCatalog = [] } = options;
+  const { lockedUnitId = "", editMode = false, editAllocations = [], kpiCatalog = [] } = options;
   const kpiUnit = getParameterSelectedKpiUnit(kpiCatalog, form);
   const sharedRoleId = getNormalizedParameterRoleId(form.parameter_role_id);
   const sharedUnitTypeId = form.parameter_unit_type_id;
@@ -930,7 +1097,12 @@ export function getParameterUnitAllocationRows(ctx, form, unitState, options = {
     ];
   }
 
-  const visibleRows = getParameterVisibleUnitRows(ctx, form, { lockedUnitId });
+  const visibleRows = getParameterVisibleUnitRows(ctx, form, {
+    lockedUnitId,
+    editMode,
+    editAllocations,
+    unitState,
+  });
 
   if (isRoleParameterScope(form)) {
     const applyAllTarget = String(form.parameter_target_value || "").trim();
@@ -979,9 +1151,7 @@ export function getParameterUnitAllocationRows(ctx, form, unitState, options = {
   return visibleRows
     .map((scopeEntry) => {
       const scopeKind = scopeEntry.row_kind || "unit";
-      const scopeId = String(
-        scopeKind === "unit" ? scopeEntry.unit_id || scopeEntry.value || "" : scopeEntry.value || ""
-      ).trim();
+      const scopeId = getParameterRowScopeId(scopeEntry);
 
       const state = getParameterUnitState(unitState, scopeKind, scopeId);
       const resolvedResponsible = resolveParameterResponsibleEntry(ctx, form, scopeEntry, state);
@@ -996,7 +1166,9 @@ export function getParameterUnitAllocationRows(ctx, form, unitState, options = {
         kpi_target_allocation_id: String(state.kpi_target_allocation_id ?? "").trim() || null,
         plant_id: scopeKind === "unit" ? String(scopeEntry.unit_id || "").trim() || null : null,
         zone_id: scopeKind === "zone" ? String(scopeEntry.zone_id || "").trim() || null : null,
-        product_line_id: null,
+        // Lines of an edited card keep the card's product line instead of being cleared.
+        product_line_id:
+          scopeKind === "unit" && editMode ? form.parameter_edit_product_line_id || null : null,
         unit_id: scopeKind === "unit" ? String(scopeEntry.unit_id || "").trim() || null : null,
         product_id:
           scopeKind === "zone" || scopeKind === "product_line" ? null : form.parameter_product_id,
@@ -1069,7 +1241,7 @@ export function buildParameterPayload(ctx, form, unitState, options = {}) {
 // saveParameterKpi()'s validation chain, as a pure function returning the first
 // error message (or null).
 export function validateParameterForm(ctx, form, unitState, options = {}) {
-  const { lockedUnitId = "" } = options;
+  const { lockedUnitId = "", editMode = false, editAllocations = [] } = options;
   const scopeKind = getParameterScopeKind(form);
 
   if (!form.parameter_kpi_id) return "Select a KPI name first";
@@ -1100,7 +1272,12 @@ export function validateParameterForm(ctx, form, unitState, options = {}) {
     return null;
   }
 
-  const visibleRows = getParameterVisibleUnitRows(ctx, form, { lockedUnitId });
+  const visibleRows = getParameterVisibleUnitRows(ctx, form, {
+    lockedUnitId,
+    editMode,
+    editAllocations,
+    unitState,
+  });
   if (!visibleRows.length) {
     if (scopeKind === "zone") return "No zones are available from the zone table.";
     if (scopeKind === "role")
@@ -1118,10 +1295,18 @@ export function validateParameterForm(ctx, form, unitState, options = {}) {
 
   const missingRow = visibleRows.find((row) => {
     const rowKind = row.row_kind || "unit";
-    const scopeId = String(
-      rowKind === "unit" ? row.unit_id || row.value || "" : row.value || ""
-    ).trim();
-    const state = getParameterUnitState(unitState, rowKind, scopeId);
+    const state = getParameterUnitState(unitState, rowKind, getParameterRowScopeId(row));
+
+    // While editing, a line of another plant (no allocation in this card) is optional: an empty target creates nothing.
+    if (
+      editMode &&
+      rowKind === "unit" &&
+      row.people_id &&
+      !String(state.kpi_target_allocation_id ?? "").trim()
+    ) {
+      return false;
+    }
+
     const targetValue = String(state.target_value ?? "").trim();
     return targetValue === "" || !Number.isFinite(Number(targetValue));
   });
@@ -1416,13 +1601,22 @@ export function buildParameterScopeSummary(row) {
     .join(" / ");
 }
 
-export function getExpectedMultisiteTargetCount(lookups, row = {}) {
-  if (String(row.kpi_type || "").trim().toLowerCase() !== "multisite") {
-    return Number(row.group_row_count || 1);
-  }
-  return getParameterAllocationUnits(lookups)
-    .filter((unit) => String(unit.unit_type_name || "").trim().toLowerCase() === "factory")
-    .filter((unit) => String(unit.label || "").trim().toLowerCase() !== "avocarbon group").length;
+// Plants that hold a target in this card; a plant with several owners counts once (each owner is a linked row).
+export function getMultisiteUnitTargetCount(row = {}) {
+  const allocations =
+    Array.isArray(row.related_allocations) && row.related_allocations.length
+      ? row.related_allocations
+      : [row];
+
+  return new Set(
+    allocations
+      .map((allocation) => String(allocation?.plant_id || allocation?.unit_id || "").trim())
+      .filter(Boolean)
+  ).size;
+}
+
+export function formatParameterCountLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`;
 }
 
 
@@ -1566,6 +1760,13 @@ export function allocationToParameterForm(lookups, data) {
     parameter_set_by_people_id: primaryRow.set_by_people_id ?? "",
     parameter_approved_by_people_id: primaryRow.approved_by_people_id ?? "",
     parameter_comments: primaryRow.comments ?? "",
+    // Edited card: its product line (Chennai Brushes / Chokes / Seals) and the plants where its KPI still has
+    // a live target.
+    parameter_edit_product_line_id:
+      normalizedKpiType === "multisite" ? String(primaryRow?.product_line_id || "").trim() : "",
+    parameter_live_unit_ids: Array.isArray(data?.live_unit_ids)
+      ? data.live_unit_ids.map((unitId) => String(unitId || "").trim()).filter(Boolean)
+      : null,
   };
 
   // Non-grouped scopes (Individual) stay pinned to their saved unit.
@@ -1584,10 +1785,16 @@ export function allocationToParameterForm(lookups, data) {
 // In edit mode a unit row whose state was not matched by scope key can still be
 // recovered from the saved allocations by plant_id / unit_id (original
 // renderMultisiteUnitMatrix edit-mode fallback).
-export function resolveEditModeUnitState(state, { editMode, editAllocations, scopeKind, scopeId }) {
+// Rows of a role holder are matched by unit + person only (hasPeopleId), so they never borrow a colleague's
+// allocation.
+export function resolveEditModeUnitState(
+  state,
+  { editMode, editAllocations, scopeKind, scopeId, hasPeopleId = false }
+) {
   if (
     !editMode ||
     scopeKind !== "unit" ||
+    hasPeopleId ||
     !(state.target_value === undefined || state.target_value === null || state.target_value === "")
   ) {
     return state;

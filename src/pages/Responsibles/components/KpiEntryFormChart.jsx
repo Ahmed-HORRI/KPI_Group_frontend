@@ -81,7 +81,7 @@ export default function KpiEntryFormChart({ kpi, typedValue }) {
   const { lowerBound, upperBound } = getKpiBounds(kpi.low_limit, kpi.high_limit);
 
   return (
-    <div className="h-52">
+    <div className="h-72">
       <Bar
         data={data}
         options={{

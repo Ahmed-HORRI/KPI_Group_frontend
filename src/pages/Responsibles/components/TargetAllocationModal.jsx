@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Field, Modal, SectionTitle, inputClass, readonlyInputClass } from "./ui.jsx";
+import { Field, Modal, SectionPanel, StatusPill, inputClass, readonlyInputClass } from "./ui.jsx";
 import { getLocalDateInputValue, normalizeParameterDateValue } from "./formatting.js";
 import {
   PARAMETER_KPI_TYPE_OPTIONS,
@@ -11,6 +11,7 @@ import {
   getParameterScopeKind,
   getParameterSelectedKpiUnit,
   getParameterUnitMetaText,
+  getParameterRowScopeId,
   getParameterUnitState,
   getParameterVisibleUnitRows,
   getRoleApplyAllSharedSetupDateValue,
@@ -25,6 +26,9 @@ import {
   setParameterUnitState,
   getParameterKpiById,
 } from "./allocationHelpers.js";
+
+// Use the native select's longest option width, capped at the available space.
+const selectClass = inputClass.replace("w-full", "w-auto max-w-full self-start");
 
 // Port of the original page's "KPI Target Allocation" modal, including the
 // multisite unit matrix (renderMultisiteUnitMatrix + syncParameterScopePresentation
@@ -55,7 +59,7 @@ function KpiNameSelect({ kpiCatalog, value, onChange }) {
   }, [kpiCatalog]);
 
   return (
-    <select className={inputClass} value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
+    <select className={selectClass} value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
       <option value="">Select KPI name</option>
       {grouped.map(([subjectPath, kpis]) => (
         <optgroup key={subjectPath} label={subjectPath.split("/").pop().trim() || subjectPath}>
@@ -100,8 +104,9 @@ export default function TargetAllocationModal({
 
   const roleScope = useMemo(() => getParameterRoleScopeOptions(ctx, form), [ctx, form]);
   const visibleRows = useMemo(
-    () => getParameterVisibleUnitRows(ctx, form, { lockedUnitId }),
-    [ctx, form, lockedUnitId]
+    () =>
+      getParameterVisibleUnitRows(ctx, form, { lockedUnitId, editMode, editAllocations, unitState }),
+    [ctx, form, lockedUnitId, editMode, editAllocations, unitState]
   );
 
   // handleParameterKpiTypeChange(): changing the scope resets the scope-derived
@@ -121,28 +126,22 @@ export default function TargetAllocationModal({
 
   const setRowState = (row, patch) => {
     const rowKind = row.row_kind || "unit";
-    const scopeId = String(
-      rowKind === "unit" ? row.unit_id || row.value || "" : row.value || ""
-    ).trim();
-    setUnitState((prev) => setParameterUnitState(prev, rowKind, scopeId, patch));
+    setUnitState((prev) =>
+      setParameterUnitState(prev, rowKind, getParameterRowScopeId(row), patch)
+    );
   };
 
   const fillColumnDown = (field) => {
     if (!visibleRows.length) return;
     const firstRow = visibleRows[0];
     const rowKind = firstRow.row_kind || "unit";
-    const firstScopeId = String(
-      rowKind === "unit" ? firstRow.unit_id || firstRow.value || "" : firstRow.value || ""
-    ).trim();
+    const firstScopeId = getParameterRowScopeId(firstRow);
     const sourceValue = getParameterUnitState(unitState, rowKind, firstScopeId)?.[field] ?? "";
     setUnitState((prev) => {
       let next = prev;
       visibleRows.forEach((row) => {
         const kind = row.row_kind || "unit";
-        const scopeId = String(
-          kind === "unit" ? row.unit_id || row.value || "" : row.value || ""
-        ).trim();
-        next = setParameterUnitState(next, kind, scopeId, { [field]: sourceValue });
+        next = setParameterUnitState(next, kind, getParameterRowScopeId(row), { [field]: sourceValue });
       });
       return next;
     });
@@ -195,6 +194,14 @@ export default function TargetAllocationModal({
         ? "Product Line View"
         : "Unit Type View";
 
+  const tableBadgeTone = isZoneScope
+    ? "amber"
+    : isRoleScope
+      ? "green"
+      : isProductLineScope
+        ? "blue"
+        : "violet";
+
   return (
     <Modal
       wide
@@ -210,7 +217,7 @@ export default function TargetAllocationModal({
           {editMode ? (
             <button
               type="button"
-              className="mr-auto rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50"
+              className="mr-auto rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
               onClick={onDelete}
             >
               Delete allocation
@@ -218,7 +225,7 @@ export default function TargetAllocationModal({
           ) : null}
           <button
             type="button"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600"
+            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             onClick={onClose}
           >
             Cancel
@@ -234,8 +241,9 @@ export default function TargetAllocationModal({
         </>
       }
     >
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-6">
+      <SectionPanel icon="🧭" title="Scope">
+      <div className="flex flex-wrap items-start gap-4 [&_label]:min-w-0 [&_label>span:first-child]:flex-wrap [&_label>span:first-child]:gap-y-0">
+        <div className="min-w-0 max-w-full">
           <Field label="KPI Name" required>
             <KpiNameSelect
               kpiCatalog={kpiCatalog}
@@ -244,10 +252,10 @@ export default function TargetAllocationModal({
             />
           </Field>
         </div>
-        <div className="lg:col-span-3">
+        <div className="min-w-0 max-w-full">
           <Field label="KPI Type" required>
             <select
-              className={inputClass}
+              className={selectClass}
               value={form.parameter_kpi_type ?? ""}
               onChange={(e) => changeKpiType(e.target.value)}
             >
@@ -261,10 +269,10 @@ export default function TargetAllocationModal({
           </Field>
         </div>
         {!isZoneScope && !isIndividual && !isProductLineScope && !isRoleScope ? (
-          <div className="lg:col-span-3">
+          <div className="min-w-0 max-w-full">
             <Field label="Unit Type">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.parameter_unit_type_id ?? ""}
                 onChange={(e) => changeUnitType(e.target.value)}
                 disabled={Boolean(lockedUnitId)}
@@ -280,14 +288,14 @@ export default function TargetAllocationModal({
           </div>
         ) : null}
         {hasKpiType && !isProductLineScope ? (
-          <div className="lg:col-span-3">
+          <div className="min-w-0 max-w-full">
             <Field
               label="Role"
               required={shouldRequireRole}
               hint={isZoneScope ? "Filter zones by role or keep All roles" : "Loaded from role table"}
             >
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.parameter_role_id ?? ""}
                 onChange={(e) => update({ parameter_role_id: e.target.value })}
               >
@@ -302,10 +310,10 @@ export default function TargetAllocationModal({
           </div>
         ) : null}
         {isRoleScope ? (
-          <div className="lg:col-span-3">
+          <div className="min-w-0 max-w-full">
             <Field label="Role Target Mode" required>
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.parameter_role_target_mode ?? ""}
                 onChange={(e) => update({ parameter_role_target_mode: e.target.value })}
               >
@@ -330,14 +338,13 @@ export default function TargetAllocationModal({
           }
         />
       </Field>
+      </SectionPanel>
 
       {!isIndividual ? (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-600 shadow-sm">
-              {tableBadge}
-            </span>
-            <span className="text-xs text-slate-400">{tableCopy}</span>
+        <SectionPanel icon="📊" title="Target rows">
+          <div className="-mt-1 flex flex-wrap items-center justify-between gap-3">
+            <StatusPill tone={tableBadgeTone}>{tableBadge}</StatusPill>
+            <span className="text-xs text-slate-400 dark:text-slate-500">{tableCopy}</span>
           </div>
           <MultisiteMatrix
             ctx={ctx}
@@ -355,13 +362,12 @@ export default function TargetAllocationModal({
             lockedUnitId={lockedUnitId}
             update={update}
           />
-        </div>
+        </SectionPanel>
       ) : null}
 
       {isIndividual ? (
-        <>
-          <SectionTitle>Allocation</SectionTitle>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <SectionPanel icon="🎯" title="Allocation">
+          <div className="flex flex-wrap items-start gap-4 [&>label]:min-w-0 [&>label]:max-w-full [&>label>span:first-child]:flex-wrap [&>label>span:first-child]:gap-y-0">
             <Field label="Target Value" required>
               <input
                 className={inputClass}
@@ -388,7 +394,7 @@ export default function TargetAllocationModal({
             </Field>
             <Field label="Responsible" hint={responsibleHint}>
               <select
-                className={inputClass}
+                className={selectClass}
                 value={effectiveResponsibleId}
                 onChange={(e) => update({ parameter_set_by_people_id: e.target.value })}
               >
@@ -404,7 +410,7 @@ export default function TargetAllocationModal({
           {isIndividual && !lockedUnitId ? (
             <Field label="Unit" hint="Individual allocations target a single unit">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.parameter_plant_id ?? ""}
                 onChange={(e) => update({ parameter_plant_id: e.target.value })}
               >
@@ -417,7 +423,7 @@ export default function TargetAllocationModal({
               </select>
             </Field>
           ) : null}
-        </>
+        </SectionPanel>
       ) : null}
     </Modal>
   );
@@ -483,9 +489,9 @@ function MultisiteMatrix({
     const roleLabel = getParameterRoleLabel(ctx.roleOptions, selectedRoleId) || "Selected role";
 
     return (
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-3 py-2.5">{scopeLabel}</th>
               <th className="px-3 py-2.5">KPI Unit</th>
@@ -495,13 +501,13 @@ function MultisiteMatrix({
             </tr>
           </thead>
           <tbody>
-            <tr className="border-t border-slate-100">
+            <tr className="border-t border-slate-100 dark:border-slate-800">
               <td className="px-3 py-2.5">
-                <div className="font-semibold text-slate-800">{unitSummary.title}</div>
-                <div className="text-xs text-slate-400">{unitSummary.detail}</div>
+                <div className="font-semibold text-slate-800 dark:text-white">{unitSummary.title}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">{unitSummary.detail}</div>
               </td>
               <td className="px-3 py-2.5">
-                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
                   {kpiUnit || "-"}
                 </span>
               </td>
@@ -548,9 +554,9 @@ function MultisiteMatrix({
   const showSellCurrencyColumn = scopeKind !== "role";
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
       <table className="w-full text-left text-sm">
-        <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+        <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
           <tr>
             <th className="px-3 py-2.5">{scopeLabel}</th>
             {showSellCurrencyColumn ? <th className="px-3 py-2.5">Sell Currency</th> : null}
@@ -573,15 +579,17 @@ function MultisiteMatrix({
         <tbody>
           {visibleRows.map((scopeEntry) => {
             const scopeEntryKind = scopeEntry.row_kind || "unit";
-            const scopeId = String(
-              scopeEntryKind === "unit"
-                ? scopeEntry.unit_id || scopeEntry.value || ""
-                : scopeEntry.value || ""
-            ).trim();
+            const scopeId = getParameterRowScopeId(scopeEntry);
 
             const state = resolveEditModeUnitState(
               getParameterUnitState(unitState, scopeEntryKind, scopeId),
-              { editMode, editAllocations, scopeKind: scopeEntryKind, scopeId }
+              {
+                editMode,
+                editAllocations,
+                scopeKind: scopeEntryKind,
+                scopeId,
+                hasPeopleId: Boolean(scopeEntry.people_id),
+              }
             );
 
             const resolvedResponsible = resolveParameterResponsibleEntry(
@@ -600,20 +608,23 @@ function MultisiteMatrix({
             const metaText = getParameterUnitMetaText(ctx, form, scopeEntry);
 
             return (
-              <tr key={`${scopeEntryKind}:${scopeEntry.value}`} className="border-t border-slate-100">
+              <tr
+                key={`${scopeEntryKind}:${scopeEntry.value}`}
+                className="border-t border-slate-100 transition hover:bg-slate-50/80 dark:border-slate-800 dark:hover:bg-slate-800/50"
+              >
                 <td className="px-3 py-2.5 align-top">
-                  <div className="font-semibold text-slate-800">{scopeEntry.label || ""}</div>
-                  {metaText ? <div className="text-xs text-slate-400">{metaText}</div> : null}
+                  <div className="font-semibold text-slate-800 dark:text-white">{scopeEntry.label || ""}</div>
+                  {metaText ? <div className="text-xs text-slate-400 dark:text-slate-500">{metaText}</div> : null}
                 </td>
                 {showSellCurrencyColumn ? (
                   <td className="px-3 py-2.5 align-top">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                       {scopeEntry.local_currency || "-"}
                     </span>
                   </td>
                 ) : null}
                 <td className="px-3 py-2.5 align-top">
-                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
                     {kpiUnit || "-"}
                   </span>
                 </td>
@@ -641,7 +652,7 @@ function MultisiteMatrix({
                 </td>
                 <td className="px-3 py-2.5 align-top">
                   <div
-                    className={`${readonlyInputClass} ${responsibleLabel ? "" : "text-slate-400"}`}
+                    className={`${readonlyInputClass} ${responsibleLabel ? "" : "text-slate-400 dark:text-slate-500"}`}
                     title={responsibleLabel || responsiblePlaceholder}
                   >
                     {responsibleLabel || responsiblePlaceholder}
@@ -662,7 +673,7 @@ function FillDownButton({ onClick }) {
       type="button"
       onClick={onClick}
       title="Copy the first row's value into every row of this column"
-      className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold normal-case text-slate-500 hover:bg-slate-100"
+      className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold normal-case text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
     >
       Fill down
     </button>
@@ -671,8 +682,9 @@ function FillDownButton({ onClick }) {
 
 function MatrixEmpty({ children }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-400">
-      {children}
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-500">
+      <span className="text-2xl">🧭</span>
+      <span>{children}</span>
     </div>
   );
 }

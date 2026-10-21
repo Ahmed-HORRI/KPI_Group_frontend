@@ -30,12 +30,17 @@ function DetailSection({ label, fields }) {
 
   return (
     <div>
-      <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">{label}</div>
+      <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((f) => (
-          <div key={f.label} className="rounded-xl border border-slate-100 bg-slate-50/70 px-3.5 py-2.5">
-            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{f.label}</div>
-            <div className="mt-0.5 break-words text-sm font-semibold text-slate-800">
+          <div
+            key={f.label}
+            className="rounded-xl border border-slate-100 bg-slate-50/70 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-800/40"
+          >
+            <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {f.label}
+            </div>
+            <div className="mt-0.5 break-words text-sm font-semibold text-slate-800 dark:text-white">
               {f.node || String(f.value)}
             </div>
           </div>
@@ -65,7 +70,7 @@ export default function KpiDetailsModal({ kpi, onClose }) {
       footer={
         <button
           type="button"
-          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600"
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           onClick={onClose}
         >
           Close
@@ -161,7 +166,7 @@ export default function KpiDetailsModal({ kpi, onClose }) {
               value: fileUrl,
               node: (
                 <a
-                  className="break-all text-blue-600 underline"
+                  className="break-all text-blue-600 underline dark:text-blue-400"
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -176,8 +181,8 @@ export default function KpiDetailsModal({ kpi, onClose }) {
       ) : null}
       {definition ? (
         <div>
-          <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Definition</div>
-          <div className="whitespace-pre-wrap rounded-xl border border-slate-100 bg-slate-50/70 px-3.5 py-2.5 text-sm text-slate-700">
+          <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Definition</div>
+          <div className="whitespace-pre-wrap rounded-xl border border-slate-100 bg-slate-50/70 px-3.5 py-2.5 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300">
             {definition}
           </div>
         </div>
