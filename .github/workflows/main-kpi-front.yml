@@ -2,6 +2,9 @@
 # (package-lock.json), lints, runs the unit tests and builds the app.
 # Nothing is deployed here.
 name: main-kpi-front
+# Run title: the commit message for a push (GitHub's default when this is
+# empty); "Manual run on <branch>" for a run started with "Run workflow".
+run-name: "${{ github.event_name == 'workflow_dispatch' && format('Manual run on {0}', github.ref_name) || '' }}"
 
 on:
   push:
