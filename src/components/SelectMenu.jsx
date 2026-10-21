@@ -9,9 +9,11 @@ const GAP = 6;
 // can be grouped. Rendered in a portal (like DropdownMenu) so a card with
 // overflow-hidden never clips it; flips above the field when there is no room.
 //
-// options: [{ value, label, description?, hint?, icon?, group? }] -- description
-// is a short note on the right (a count), hint a line of text under the label;
-// a header is shown each time `group` changes from one option to the next.
+// options: [{ value, label, description?, hint?, icon?, dot?, group? }] --
+// description is a short note on the right (a count), hint a line of text under
+// the label, dot a colour class for a status dot (also shown in the field when
+// selected); a header is shown each time `group` changes from one option to the next.
+// active: the value narrows something down (a filter in use) -- the field is tinted.
 // hideLabel: the label is only for assistive technology (e.g. a form field
 // that already has a heading).
 export default function SelectMenu({
@@ -22,6 +24,7 @@ export default function SelectMenu({
   options,
   onChange,
   disabled = false,
+  active = false,
   searchable = false,
   searchPlaceholder = "Search...",
   // The list is as wide as the field, and at least this wide (room for the search box).
@@ -40,6 +43,8 @@ export default function SelectMenu({
   const listId = useId();
 
   const selected = options.find((option) => option.value === value);
+  // Rows without a dot keep its room, so the labels line up.
+  const hasDots = options.some((option) => option.dot);
   const visible = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return options;
@@ -173,20 +178,43 @@ export default function SelectMenu({
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         aria-label={hideLabel ? `${label}: ${selected?.label ?? ""}` : undefined}
-        className={`relative flex h-11 min-w-0 items-center gap-2.5 rounded-xl bg-white pl-3.5 pr-9 text-left shadow-sm ring-1 transition hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:ring-slate-200 dark:bg-slate-800 dark:shadow-none dark:hover:ring-slate-600 dark:focus-visible:ring-blue-500/60 ${
-          open ? "ring-2 ring-[#0078D7]/40 dark:ring-blue-500/50" : "ring-slate-200 dark:ring-slate-700"
+        className={`relative flex h-11 min-w-0 items-center gap-2.5 rounded-xl pl-3.5 pr-9 text-left shadow-sm ring-1 transition hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:ring-slate-200 dark:shadow-none dark:hover:ring-slate-600 dark:focus-visible:ring-blue-500/60 ${
+          active ? "bg-blue-50/70 dark:bg-blue-500/10" : "bg-white dark:bg-slate-800"
+        } ${
+          open
+            ? "ring-2 ring-[#0078D7]/40 dark:ring-blue-500/50"
+            : active
+              ? "ring-blue-200 dark:ring-blue-500/40"
+              : "ring-slate-200 dark:ring-slate-700"
         } ${className}`}
       >
-        {Icon ? <Icon size={16} className="shrink-0 text-slate-400 dark:text-slate-500" /> : null}
+        {Icon ? (
+          <Icon
+            size={16}
+            className={`shrink-0 ${active ? "text-[#0078D7] dark:text-blue-400" : "text-slate-400 dark:text-slate-500"}`}
+          />
+        ) : null}
         {hideLabel ? null : (
-          <span className="shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</span>
+          <span
+            className={`shrink-0 text-xs font-medium ${active ? "text-[#0078D7] dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}
+          >
+            {label}
+          </span>
         )}
         {/* Every label is laid out invisibly in the same grid cell, so the field
             is as wide as its longest option and keeps that width whatever is picked. */}
         <span className="grid min-w-0 flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
-          <span className="truncate [grid-area:1/1]">{selected?.label ?? "-"}</span>
+          <span className="flex min-w-0 items-center gap-2 [grid-area:1/1]">
+            {selected?.dot ? <span className={`h-2 w-2 shrink-0 rounded-full ${selected.dot}`} /> : null}
+            <span className="truncate">{selected?.label ?? "-"}</span>
+          </span>
           {options.map((option) => (
-            <span key={option.value} aria-hidden="true" className="invisible h-0 whitespace-nowrap [grid-area:1/1]">
+            <span
+              key={option.value}
+              aria-hidden="true"
+              className="invisible flex h-0 items-center gap-2 whitespace-nowrap [grid-area:1/1]"
+            >
+              {option.dot ? <span className="w-2 shrink-0" /> : null}
               {option.label}
             </span>
           ))}
@@ -272,6 +300,11 @@ export default function SelectMenu({
                               : "text-slate-700 dark:text-slate-200"
                           }`}
                         >
+                          {option.dot ? (
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${option.dot}`} />
+                          ) : hasDots ? (
+                            <span aria-hidden="true" className="w-2 shrink-0" />
+                          ) : null}
                           {option.icon ? (
                             <span
                               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${

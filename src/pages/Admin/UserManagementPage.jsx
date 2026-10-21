@@ -14,21 +14,31 @@ import {
   LogoutIcon,
   MailIcon,
   MoreIcon,
+  ShieldIcon,
   TrashIcon,
   UnlockIcon,
   UserPlusIcon,
 } from "../../components/icons.jsx";
-import { EmptyState, StatTile, StatusPill, inputClass } from "../Responsibles/components/ui.jsx";
+import { EmptyState, StatTile, StatusPill } from "../Responsibles/components/ui.jsx";
 import ActivityLog from "./components/ActivityLog";
 import KpiChangeLog from "./components/KpiChangeLog";
 import UserFormModal from "./components/UserFormModal";
 import { ManualLinkModal, TemporaryPasswordModal } from "./components/UserActionModals";
-import { ROLE_OPTIONS, USER_STATUS_META, USER_STATUS_OPTIONS, formatDateTime } from "./components/adminUi";
+import { TONE_DOT, USER_STATUS_META, formatDateTime } from "./components/adminUi";
 import { PeopleIdBadge } from "./components/formUi";
-import { getRoleMeta } from "../../constants/userRoles";
+import { ROLE_META, getRoleMeta } from "../../constants/userRoles";
+import SelectMenu from "../../components/SelectMenu.jsx";
+import { ClearFiltersButton, SearchField } from "../../components/FilterControls.jsx";
 
-// inputClass is full width; filters size to their content.
-const filterSelectClass = inputClass.replace("w-full", "w-auto");
+// Filter lists: each dot has the colour of the matching pill in the table.
+const ROLE_FILTER_OPTIONS = [
+  { value: "", label: "All roles" },
+  ...Object.entries(ROLE_META).map(([value, meta]) => ({ value, label: meta.label, dot: TONE_DOT[meta.tone] })),
+];
+const STATUS_FILTER_OPTIONS = [
+  { value: "", label: "All statuses" },
+  ...Object.entries(USER_STATUS_META).map(([value, meta]) => ({ value, label: meta.label, dot: TONE_DOT[meta.tone] })),
+];
 
 const primaryButtonClass =
   "inline-flex items-center gap-2 rounded-xl bg-[#0078D7] px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#0067b8] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 dark:shadow-none dark:focus-visible:ring-blue-500/30";
@@ -379,40 +389,39 @@ export default function UserManagementPage() {
         />
       ) : (
         <section className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-            <input
-              className={`${inputClass} max-w-sm`}
-              placeholder="Search by name or e-mail"
+          <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+            <SearchField
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              aria-label="Search accounts"
+              onChange={setSearch}
+              placeholder="Search by name or e-mail"
+              label="Search accounts"
+              className="w-full sm:w-72"
             />
-            <select
-              className={filterSelectClass}
+            <SelectMenu
+              icon={ShieldIcon}
+              label="Role"
               value={roleFilter}
-              onChange={(event) => setRoleFilter(event.target.value)}
-              aria-label="Filter by role"
-            >
-              <option value="">All roles</option>
-              {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <select
-              className={filterSelectClass}
+              options={ROLE_FILTER_OPTIONS}
+              onChange={setRoleFilter}
+              active={Boolean(roleFilter)}
+            />
+            <SelectMenu
+              icon={CheckCircleIcon}
+              label="Status"
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              aria-label="Filter by status"
-            >
-              <option value="">All statuses</option>
-              {USER_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              options={STATUS_FILTER_OPTIONS}
+              onChange={setStatusFilter}
+              active={Boolean(statusFilter)}
+            />
+            {search || roleFilter || statusFilter ? (
+              <ClearFiltersButton
+                onClick={() => {
+                  setSearch("");
+                  setRoleFilter("");
+                  setStatusFilter("");
+                }}
+              />
+            ) : null}
             <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
               {visibleUsers.length} of {users.length} accounts
             </span>

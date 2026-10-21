@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
 import apiClient, { getApiErrorMessage } from "../../../api/client";
 import SelectMenu from "../../../components/SelectMenu.jsx";
-import { ActivityIcon, DashboardIcon } from "../../../components/icons.jsx";
-import { EmptyState, StatusPill, inputClass } from "../../Responsibles/components/ui.jsx";
-import { formatDateTime } from "./adminUi";
+import { ClearFiltersButton, SearchField } from "../../../components/FilterControls.jsx";
+import { ActivityIcon, ChartIcon, DashboardIcon, TargetIcon } from "../../../components/icons.jsx";
+import { EmptyState, StatusPill } from "../../Responsibles/components/ui.jsx";
+import { TONE_DOT, formatDateTime } from "./adminUi";
 
 const TYPE_OPTIONS = [
-  { value: "", label: "All items" },
-  { value: "kpi", label: "KPIs" },
-  { value: "target_allocation", label: "Target allocations" },
-];
-
-const ACTION_OPTIONS = [
-  { value: "", label: "All actions" },
-  { value: "created", label: "Created" },
-  { value: "updated", label: "Updated" },
-  { value: "deleted", label: "Deleted" },
+  { value: "", label: "All items", icon: DashboardIcon },
+  { value: "kpi", label: "KPIs", icon: ChartIcon },
+  { value: "target_allocation", label: "Target allocations", icon: TargetIcon },
 ];
 
 const ACTION_META = {
@@ -23,6 +17,12 @@ const ACTION_META = {
   updated: { label: "Updated", tone: "blue" },
   deleted: { label: "Deleted", tone: "red" },
 };
+
+// Each dot has the colour of the matching pill in the table.
+const ACTION_OPTIONS = [
+  { value: "", label: "All actions" },
+  ...Object.entries(ACTION_META).map(([value, meta]) => ({ value, label: meta.label, dot: TONE_DOT[meta.tone] })),
+];
 
 const SOURCE_LABELS = {
   dashboard: "Responsible KPI Dashboard",
@@ -212,16 +212,39 @@ export default function KpiChangeLog() {
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-        <SelectMenu icon={DashboardIcon} label="Type" value={entityType} options={TYPE_OPTIONS} onChange={setEntityType} />
-        <SelectMenu icon={ActivityIcon} label="Action" value={action} options={ACTION_OPTIONS} onChange={setAction} />
-        <input
-          className={`${inputClass} max-w-xs`}
-          placeholder="Search a KPI, unit or person"
+      <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+        <SearchField
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          aria-label="Search the changes"
+          onChange={setSearch}
+          placeholder="Search a KPI, unit or person"
+          label="Search the changes"
+          className="w-full sm:w-72"
         />
+        <SelectMenu
+          icon={DashboardIcon}
+          label="Type"
+          value={entityType}
+          options={TYPE_OPTIONS}
+          onChange={setEntityType}
+          active={Boolean(entityType)}
+        />
+        <SelectMenu
+          icon={ActivityIcon}
+          label="Action"
+          value={action}
+          options={ACTION_OPTIONS}
+          onChange={setAction}
+          active={Boolean(action)}
+        />
+        {entityType || action || search ? (
+          <ClearFiltersButton
+            onClick={() => {
+              setEntityType("");
+              setAction("");
+              setSearch("");
+            }}
+          />
+        ) : null}
         <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">Latest 300 changes</span>
       </div>
 

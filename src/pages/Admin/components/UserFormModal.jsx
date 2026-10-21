@@ -3,34 +3,13 @@ import apiClient, { getApiErrorMessage } from "../../../api/client";
 import Avatar from "../../../components/Avatar.jsx";
 import Dialog, { Spinner, buttonClasses } from "../../../components/Dialog.jsx";
 import SelectMenu from "../../../components/SelectMenu.jsx";
-import {
-  AlertIcon,
-  BriefcaseIcon,
-  CloseIcon,
-  CrownIcon,
-  EditIcon,
-  FactoryIcon,
-  GlobeIcon,
-  KeyIcon,
-  MailIcon,
-  SearchIcon,
-  ShieldIcon,
-  UserIcon,
-  UserPlusIcon,
-} from "../../../components/icons.jsx";
+import { AlertIcon, CloseIcon, EditIcon, KeyIcon, MailIcon, SearchIcon, UserPlusIcon } from "../../../components/icons.jsx";
 import { ROLE_META } from "../../../constants/userRoles";
+import { ROLE_ICONS } from "./roleIcons";
 import { inputClass } from "../../Responsibles/components/ui.jsx";
 import { isPasswordAcceptable } from "../../Auth/components/authUi";
 import { ChoiceCard, FieldLabel, FormSection, PeopleIdBadge, TemporaryPasswordInput, ToggleRow } from "./formUi";
 
-const ROLE_ICONS = {
-  user: UserIcon,
-  plant_manager: FactoryIcon,
-  zone_manager: GlobeIcon,
-  vp: BriefcaseIcon,
-  ceo: CrownIcon,
-  admin: ShieldIcon,
-};
 
 const ROLE_CHOICES = Object.entries(ROLE_META).map(([value, meta]) => ({
   value,

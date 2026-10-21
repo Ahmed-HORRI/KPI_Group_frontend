@@ -13,6 +13,18 @@ export const USER_STATUS_OPTIONS = Object.entries(USER_STATUS_META).map(([value,
 
 export { ROLE_OPTIONS } from "../../../constants/userRoles";
 
+// Dot colour of each StatusPill tone, for the filter lists.
+export const TONE_DOT = {
+  green: "bg-emerald-500",
+  amber: "bg-amber-500",
+  blue: "bg-blue-500",
+  red: "bg-red-500",
+  slate: "bg-slate-400",
+  violet: "bg-violet-500",
+  indigo: "bg-indigo-500",
+  cyan: "bg-cyan-500",
+};
+
 const EVENT_LABELS = {
   "login.success": "Signed in",
   "login.failure": "Failed sign-in",
