@@ -20,6 +20,7 @@ import {
 } from "../../components/icons.jsx";
 import { EmptyState, StatTile, StatusPill, inputClass } from "../Responsibles/components/ui.jsx";
 import ActivityLog from "./components/ActivityLog";
+import KpiChangeLog from "./components/KpiChangeLog";
 import UserFormModal from "./components/UserFormModal";
 import { ManualLinkModal, TemporaryPasswordModal } from "./components/UserActionModals";
 import { ROLE_OPTIONS, USER_STATUS_META, USER_STATUS_OPTIONS, formatDateTime } from "./components/adminUi";
@@ -362,9 +363,14 @@ export default function UserManagementPage() {
         <button type="button" className={tabClass("activity")} onClick={() => setTab("activity")}>
           Activity log
         </button>
+        <button type="button" className={tabClass("kpi-changes")} onClick={() => setTab("kpi-changes")}>
+          KPI changes
+        </button>
       </div>
 
-      {tab === "activity" ? (
+      {tab === "kpi-changes" ? (
+        <KpiChangeLog />
+      ) : tab === "activity" ? (
         <ActivityLog
           users={users}
           userFilter={activityUserFilter}
