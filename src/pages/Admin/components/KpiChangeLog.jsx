@@ -198,7 +198,7 @@ export default function KpiChangeLog() {
         setError("");
       })
       .catch((err) => {
-        if (!cancelled) setError(getApiErrorMessage(err, "Unable to load the KPI changes."));
+        if (!cancelled) setError(getApiErrorMessage(err, "Unable to load the KPI audit trail."));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

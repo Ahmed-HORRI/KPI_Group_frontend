@@ -373,12 +373,12 @@ export default function UserManagementPage() {
         <button type="button" className={tabClass("activity")} onClick={() => setTab("activity")}>
           Activity log
         </button>
-        <button type="button" className={tabClass("kpi-changes")} onClick={() => setTab("kpi-changes")}>
-          KPI changes
+        <button type="button" className={tabClass("kpi-audit")} onClick={() => setTab("kpi-audit")}>
+          KPI audit trail
         </button>
       </div>
 
-      {tab === "kpi-changes" ? (
+      {tab === "kpi-audit" ? (
         <KpiChangeLog />
       ) : tab === "activity" ? (
         <ActivityLog
