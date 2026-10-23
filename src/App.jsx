@@ -10,6 +10,7 @@ import ChangePasswordPage from "./pages/Auth/ChangePasswordPage.jsx";
 import UserManagementPage from "./pages/Admin/UserManagementPage.jsx";
 import KpiAdminPage from "./pages/KPIs/KpiAdminPage.jsx";
 import KpiTrendsPage from "./pages/KPIs/KpiTrendsPage.jsx";
+import KpiIntakePage from "./pages/KpiIntake/KpiIntakePage.jsx";
 import CeoReportPlantPage from "./pages/CeoReport/CeoReportPlantPage.jsx";
 import TargetAdjustmentReviewPage from "./pages/TargetAdjustments/TargetAdjustmentReviewPage.jsx";
 import DashboardPage from "./pages/Dashboard/DashboardPage.jsx";
@@ -53,6 +54,8 @@ export default function App() {
             <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
             <Route path="/kpi-admin" element={<KpiAdminPage />} />
             <Route path="/kpi-trends" element={<KpiTrendsPage />} />
+            {/* KPI & Target Intake: anyone with the link enters lines; only an admin submits them. */}
+            <Route path="/kpi-intake" element={<KpiIntakePage />} />
             <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
             <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
             <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />

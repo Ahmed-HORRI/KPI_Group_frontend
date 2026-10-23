@@ -118,7 +118,7 @@ export default function KpiEntryFormCard({
           <button
             type="button"
             onClick={onOpenAssistant}
-            className="inline-flex items-center gap-2 self-start rounded-full bg-gradient-to-br from-amber-400 to-orange-500 py-2 pl-2 pr-4 text-xs font-bold text-white shadow-md shadow-orange-500/25 transition hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 self-start rounded-full btn-brand py-2 pl-2 pr-4 text-xs font-bold shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5"
           >
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm">
               🤖

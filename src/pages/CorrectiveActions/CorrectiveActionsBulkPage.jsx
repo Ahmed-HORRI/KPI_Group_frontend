@@ -124,7 +124,7 @@ export default function CorrectiveActionsBulkPage() {
           </p>
           <Link
             to={`/corrective-actions-list?responsible_id=${encodeURIComponent(responsibleId)}`}
-            className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg"
+            className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
           >
             View Corrective Actions
           </Link>
@@ -141,7 +141,7 @@ export default function CorrectiveActionsBulkPage() {
           <p className="mt-2 text-sm text-slate-500">All corrective actions for week {week} have been completed.</p>
           <Link
             to={`/dashboard?responsible_id=${encodeURIComponent(responsibleId)}`}
-            className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg"
+            className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
           >
             Go to Dashboard
           </Link>
@@ -275,7 +275,7 @@ export default function CorrectiveActionsBulkPage() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+          className="rounded-xl btn-brand px-6 py-3.5 text-sm font-bold shadow-lg"
         >
           {saving ? "Submitting..." : "Submit All Corrective Actions"}
         </button>

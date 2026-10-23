@@ -219,7 +219,7 @@ export default function DashboardPage() {
         <div className="mb-5 flex justify-end">
           <Link
             to={kpiFormUrl}
-            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 px-5 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl btn-brand px-5 text-sm font-bold shadow-lg transition hover:-translate-y-0.5"
           >
             Back to KPI Form
           </Link>

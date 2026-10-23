@@ -132,7 +132,7 @@ export default function KpiEntryFormAssistant({ kpi, responsibleId, onClose }) {
         <button
           type="submit"
           disabled={sending}
-          className="mt-2 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+          className="mt-2 w-full rounded-xl btn-brand px-4 py-2.5 text-sm font-bold"
         >
           {sending ? "Sending..." : "Send"}
         </button>

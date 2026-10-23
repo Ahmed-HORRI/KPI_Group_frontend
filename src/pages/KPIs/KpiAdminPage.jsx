@@ -199,7 +199,7 @@ export default function KpiAdminPage() {
             Refresh
           </button>
           <button
-            className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5"
+            className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
             onClick={openNewDrawer}
           >
             + Add KPI
@@ -615,7 +615,7 @@ export default function KpiAdminPage() {
                 Cancel
               </button>
               <button
-                className="rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+                className="rounded-xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
                 onClick={saveKpi}
                 disabled={saving}
               >

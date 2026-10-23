@@ -232,7 +232,7 @@ export default function TargetAllocationModal({
           </button>
           <button
             type="button"
-            className="rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+            className="rounded-xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
             disabled={saving}
             onClick={() => onSave(effectiveResponsibleId)}
           >

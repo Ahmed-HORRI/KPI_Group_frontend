@@ -41,7 +41,7 @@ const STATUS_FILTER_OPTIONS = [
 ];
 
 const primaryButtonClass =
-  "inline-flex items-center gap-2 rounded-xl bg-[#0078D7] px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#0067b8] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 dark:shadow-none dark:focus-visible:ring-blue-500/30";
+  "inline-flex items-center gap-2 rounded-xl btn-brand px-4 py-2.5 text-sm font-bold shadow-md shadow-blue-500/20 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 dark:shadow-none dark:focus-visible:ring-blue-500/30";
 
 function Notice({ notice, onDismiss }) {
   if (!notice) return null;

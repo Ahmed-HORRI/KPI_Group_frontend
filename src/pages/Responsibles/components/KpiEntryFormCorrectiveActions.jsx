@@ -56,7 +56,7 @@ export default function KpiEntryFormCorrectiveActions({
         <button
           type="button"
           onClick={addAction}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-br from-red-500 to-rose-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-500/25 transition hover:-translate-y-0.5"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full btn-brand px-4 py-2 text-xs font-bold shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5"
         >
           <span className="text-sm leading-none">+</span> Add Action
         </button>

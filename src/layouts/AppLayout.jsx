@@ -3,7 +3,16 @@ import { useAuth } from "../auth/AuthContext";
 import { getHomePath } from "../auth/RouteGuards";
 import Avatar from "../components/Avatar.jsx";
 import DropdownMenu from "../components/DropdownMenu.jsx";
-import { ChevronDownIcon, DashboardIcon, KeyIcon, LogoutIcon, MoonIcon, ShieldIcon, SunIcon } from "../components/icons.jsx";
+import {
+  ChevronDownIcon,
+  ClipboardIcon,
+  DashboardIcon,
+  KeyIcon,
+  LogoutIcon,
+  MoonIcon,
+  ShieldIcon,
+  SunIcon,
+} from "../components/icons.jsx";
 import { ThemeProvider, useTheme } from "../theme/ThemeContext.jsx";
 import { getRoleMeta } from "../constants/userRoles";
 
@@ -71,6 +80,13 @@ function UserMenu() {
                   to: `/responsible/${user.people_id}/dashboard`,
                 }
               : null,
+            {
+              key: "intake",
+              label: "KPI & Target Intake",
+              description: "Enter new KPIs and target allocations",
+              icon: ClipboardIcon,
+              to: "/kpi-intake",
+            },
             isAdmin
               ? {
                   key: "admin",
@@ -132,7 +148,8 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      {/* Stays at the top while the page scrolls (h-14). z-30: under dialogs and dropdowns. */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Link to={getHomePath(user)} className="flex items-center gap-2.5">
@@ -145,6 +162,9 @@ function AppShell() {
                   My KPI dashboard
                 </NavLink>
               ) : null}
+              <NavLink to="/kpi-intake" className={navLinkClass}>
+                KPI intake
+              </NavLink>
               {isAdmin ? (
                 <NavLink to="/admin/users" className={navLinkClass}>
                   Administration

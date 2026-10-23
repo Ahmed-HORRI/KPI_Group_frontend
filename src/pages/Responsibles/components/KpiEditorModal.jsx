@@ -444,7 +444,7 @@ export default function KpiEditorModal({
           </button>
           <button
             type="button"
-            className="rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+            className="rounded-xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
             disabled={saving || subjectPickerOpen}
             onClick={() => onSave(pendingFile)}
           >
@@ -795,7 +795,7 @@ export default function KpiEditorModal({
 
       <Field label="KPI File" hint="Upload any file type (max 20 MB)">
         <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3.5 py-3 dark:border-slate-700 dark:bg-slate-800/60">
-          <input ref={fileInputRef} type="file" className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-indigo-700 dark:text-slate-300" onChange={handleFileChange} />
+          <input ref={fileInputRef} type="file" className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#0078D7] file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-[#0067b8] dark:text-slate-300" onChange={handleFileChange} />
           {form.file_url ? (
             <span className="text-xs text-slate-500 dark:text-slate-400">
               Current file:{" "}
@@ -830,7 +830,7 @@ export default function KpiEditorModal({
               onClick={() => changeToleranceType(o)}
               className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
                 active
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-[#0078D7] text-white shadow-sm"
                   : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >

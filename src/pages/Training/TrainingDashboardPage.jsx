@@ -397,7 +397,7 @@ export default function TrainingDashboardPage() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
-                className={`h-8 w-8 rounded-lg text-xs font-bold ${p === page ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`h-8 w-8 rounded-lg text-xs font-bold ${p === page ? "bg-[#0078D7] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                 onClick={() => setPage(p)}
               >
                 {p}

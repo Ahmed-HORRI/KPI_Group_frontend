@@ -195,7 +195,7 @@ export default function KpiTrendsPage() {
           <p className="mt-2 text-sm text-slate-500">Start filling KPI forms to see trend charts.</p>
           <Link
             to={`/form?responsible_id=${encodeURIComponent(responsibleId)}`}
-            className="mt-6 inline-block rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-6 py-3 text-sm font-bold text-white shadow-lg"
+            className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
           >
             Start Filling KPIs
           </Link>

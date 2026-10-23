@@ -14,7 +14,14 @@ import {
 } from "chart.js";
 import apiClient, { getApiErrorMessage } from "../../../api/client";
 import SelectMenu from "../../../components/SelectMenu.jsx";
-import { ArrowLeftIcon, ChartIcon, FactoryIcon, GlobeIcon, UserIcon } from "../../../components/icons.jsx";
+import {
+  ArrowLeftIcon,
+  CalendarIcon,
+  ChartIcon,
+  FactoryIcon,
+  GlobeIcon,
+  UserIcon,
+} from "../../../components/icons.jsx";
 import { EmptyState, StatTile } from "./ui.jsx";
 
 ChartJS.register(
@@ -348,13 +355,43 @@ function groupByResponsible(rows) {
   return groups;
 }
 
-// "My KPI Analytics". Everyone sees their own KPIs; CEO, VP, plant / zone
-// managers and administrators can also pick a unit and a responsible of their
-// scope (the server decides the scope and enforces it).
+// Shortest period first; anything else after these, alphabetically.
+const FREQUENCY_ORDER = ["daily", "weekly", "monthly", "quarterly", "yearly"];
+
+// The frequencies of the loaded KPIs, with how many charts each has. The
+// selected one stays listed (at 0) when the new selection has none of it.
+function buildFrequencyOptions(rows, selectedFrequency) {
+  const counts = new Map();
+  rows.forEach((row) => {
+    if (row.frequency) counts.set(row.frequency, (counts.get(row.frequency) || 0) + 1);
+  });
+  if (selectedFrequency && !counts.has(selectedFrequency)) counts.set(selectedFrequency, 0);
+
+  const rank = (frequency) => {
+    const index = FREQUENCY_ORDER.indexOf(frequency.toLowerCase());
+    return index === -1 ? FREQUENCY_ORDER.length : index;
+  };
+  const frequencies = [...counts.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+
+  return [
+    { value: "", label: "All frequencies", description: String(rows.length) },
+    ...frequencies.map((frequency) => ({
+      value: frequency,
+      label: frequency,
+      description: String(counts.get(frequency)),
+    })),
+  ];
+}
+
+// "My KPI Analytics". Everyone sees their own KPIs and can narrow them by
+// frequency; CEO, VP, plant / zone managers and administrators can also pick a
+// unit and a responsible of their scope (the server decides the scope and
+// enforces it).
 export default function KpiChartsSection({ responsibleId, darkMode }) {
   const [filters, setFilters] = useState(null);
   const [unitId, setUnitId] = useState("");
   const [selected, setSelected] = useState("me"); // "me" | "all" | people_id
+  const [frequency, setFrequency] = useState(""); // "" = all frequencies
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -440,11 +477,23 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
     if (value === "me") setUnitId("");
   };
 
+  // Filtered here: every series of the selection is already loaded.
+  const frequencyOptions = buildFrequencyOptions(rows, frequency);
+  const filteredRows = useMemo(
+    () => (frequency ? rows.filter((row) => row.frequency === frequency) : rows),
+    [rows, frequency]
+  );
+
+  const changeFrequency = (value) => {
+    setFrequency(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
   const stats = useMemo(() => {
     let onTarget = 0;
     let offTarget = 0;
     let noReading = 0;
-    rows.forEach((row) => {
+    filteredRows.forEach((row) => {
       const values = Array.isArray(row.values) ? row.values : [];
       const latest = values.length ? values[values.length - 1] : null;
       if (latest === null || latest === undefined || latest === "") {
@@ -457,18 +506,20 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
       if (isBad) offTarget += 1;
       else onTarget += 1;
     });
-    return { total: rows.length, onTarget, offTarget, noReading };
-  }, [rows]);
+    return { total: filteredRows.length, onTarget, offTarget, noReading };
+  }, [filteredRows]);
 
-  const responsibleCount = new Set(rows.map((row) => row.responsible_id)).size;
+  const responsibleCount = new Set(filteredRows.map((row) => row.responsible_id)).size;
+  // "weekly KPI values", "monthly KPI values", or just "KPI values".
+  const kpiValues = `${frequency ? `${frequency.toLowerCase()} ` : ""}KPI values`;
   const subtitle =
     selected === "me"
-      ? "Visual trends of KPI values by month for this responsible."
+      ? `Visual trends of ${kpiValues} by month for this responsible.`
       : selected === "all"
-        ? `Visual trends of KPI values by month for ${responsibleCount} responsible${responsibleCount === 1 ? "" : "s"}${
+        ? `Visual trends of ${kpiValues} by month for ${responsibleCount} responsible${responsibleCount === 1 ? "" : "s"}${
             unitName ? ` in ${unitName}` : ""
           }.`
-        : `Visual trends of KPI values by month for ${selectedPerson?.full_name || "this responsible"}.`;
+        : `Visual trends of ${kpiValues} by month for ${selectedPerson?.full_name || "this responsible"}.`;
 
   const scopeLabel =
     filters?.level === "all"
@@ -477,8 +528,8 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
 
   // Several responsibles: one heading per responsible above their charts.
   const showOwners = selected === "all";
-  const visibleRows = rows.slice(0, visibleCount);
-  const remaining = rows.length - visibleRows.length;
+  const visibleRows = filteredRows.slice(0, visibleCount);
+  const remaining = filteredRows.length - visibleRows.length;
 
   return (
     <section>
@@ -510,30 +561,44 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
           ) : null}
         </div>
 
-        {canFilter ? (
+        {/* Waits for the scope so the bar does not grow once it is known. */}
+        {filters ? (
           <div className="relative mt-6">
             <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-50/80 p-2 ring-1 ring-inset ring-slate-200/70 sm:inline-flex sm:w-auto sm:max-w-full dark:bg-slate-800/40 dark:ring-slate-700/60">
+              {canFilter ? (
+                <>
+                  <SelectMenu
+                    icon={FactoryIcon}
+                    label="Unit"
+                    value={unitId}
+                    options={unitOptions}
+                    onChange={changeUnit}
+                    searchable={unitOptions.length > 8}
+                    searchPlaceholder="Search a unit..."
+                    className="w-full sm:w-auto"
+                  />
+                  <SelectMenu
+                    icon={UserIcon}
+                    label="Responsible"
+                    value={selected}
+                    options={responsibleChoices}
+                    onChange={changeResponsible}
+                    searchable={responsibleChoices.length > 8}
+                    searchPlaceholder="Search a responsible..."
+                    className="w-full sm:w-auto"
+                  />
+                </>
+              ) : null}
               <SelectMenu
-                icon={FactoryIcon}
-                label="Unit"
-                value={unitId}
-                options={unitOptions}
-                onChange={changeUnit}
-                searchable={unitOptions.length > 8}
-                searchPlaceholder="Search a unit..."
+                icon={CalendarIcon}
+                label="Frequency"
+                value={frequency}
+                options={frequencyOptions}
+                onChange={changeFrequency}
+                active={Boolean(frequency)}
                 className="w-full sm:w-auto"
               />
-              <SelectMenu
-                icon={UserIcon}
-                label="Responsible"
-                value={selected}
-                options={responsibleChoices}
-                onChange={changeResponsible}
-                searchable={responsibleChoices.length > 8}
-                searchPlaceholder="Search a responsible..."
-                className="w-full sm:w-auto"
-              />
-              {selected !== "me" ? (
+              {canFilter && selected !== "me" ? (
                 <button
                   type="button"
                   onClick={() => changeResponsible("me")}
@@ -543,7 +608,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
                 </button>
               ) : null}
             </div>
-            {!filters.responsibles.length ? (
+            {canFilter && !filters.responsibles.length ? (
               <p className="mt-2.5 px-1 text-xs text-slate-500 dark:text-slate-400">
                 No responsible has KPI results in your scope yet.
               </p>
@@ -552,7 +617,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
         ) : null}
       </div>
 
-      {!loading && !error && rows.length ? (
+      {!loading && !error && filteredRows.length ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
           <StatTile label="Tracked KPIs" value={stats.total} />
           <StatTile label="On target" value={stats.onTarget} tone="green" />
@@ -568,6 +633,19 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
       ) : !rows.length ? (
         <EmptyState>
           {selected === "me" ? "No KPI history found for this responsible." : "No KPI history found for this selection."}
+        </EmptyState>
+      ) : !filteredRows.length ? (
+        <EmptyState>
+          {`No ${frequency.toLowerCase()} KPI history found for ${
+            selected === "me" ? "this responsible" : "this selection"
+          }. `}
+          <button
+            type="button"
+            onClick={() => changeFrequency("")}
+            className="font-semibold text-[#0078D7] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/40 dark:text-blue-400"
+          >
+            Show all frequencies
+          </button>
         </EmptyState>
       ) : (
         <>

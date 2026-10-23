@@ -295,7 +295,7 @@ export default function CorrectiveActionFormPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-gradient-to-br from-red-700 to-red-500 px-6 py-3 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+                className="rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
               >
                 {saving ? "Saving..." : submitLabel}
               </button>

@@ -572,7 +572,7 @@ export default function TrainingCenterPage() {
                   type="button"
                   disabled={working}
                   onClick={() => setConfirmOpen(true)}
-                  className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+                  className="rounded-2xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
                 >
                   {pendingUnlock ? "Move to quizzes for all KPI" : "Go to quizzes"}
                 </button>
@@ -610,7 +610,7 @@ export default function TrainingCenterPage() {
                   type="button"
                   disabled={working}
                   onClick={handleSubmitAll}
-                  className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+                  className="rounded-2xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
                 >
                   {working ? "Submitting..." : "Submit all QCM"}
                 </button>
@@ -644,7 +644,7 @@ export default function TrainingCenterPage() {
               </button>
               <button
                 type="button"
-                className="rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg"
+                className="rounded-xl btn-brand px-4 py-2.5 text-sm font-bold shadow-lg"
                 onClick={handleUnlockAllConfirmed}
               >
                 Move to Quiz

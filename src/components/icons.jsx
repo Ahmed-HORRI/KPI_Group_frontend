@@ -262,3 +262,42 @@ export const SunIcon = (props) => (
     <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
   </Icon>
 );
+
+export const PlusIcon = (props) => (
+  <Icon {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </Icon>
+);
+
+export const SaveIcon = (props) => (
+  <Icon {...props}>
+    <path d="M5 4h11l3 3v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4Z" />
+    <path d="M8 4v5h7V4M8 20v-6h8v6" />
+  </Icon>
+);
+
+export const SendIcon = (props) => (
+  <Icon {...props}>
+    <path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z" />
+  </Icon>
+);
+
+export const RefreshIcon = (props) => (
+  <Icon {...props}>
+    <path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5L20 16M20 20v-4h-4" />
+  </Icon>
+);
+
+export const ClipboardIcon = (props) => (
+  <Icon {...props}>
+    <rect x="5" y="4" width="14" height="17" rx="2" />
+    <path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3" />
+  </Icon>
+);
+
+export const CalendarIcon = (props) => (
+  <Icon {...props}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </Icon>
+);

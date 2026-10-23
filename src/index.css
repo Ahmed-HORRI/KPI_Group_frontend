@@ -10,6 +10,29 @@
   color-scheme: dark;
 }
 
+/* The color of every primary button and link-button of the app: one blue,
+   darker on hover, and grey while it cannot be used (a faded blue would read
+   as another color). Size and shape stay with each button. */
+@utility btn-brand {
+  background-color: #0078d7;
+  color: #fff;
+  &:hover:not(:disabled) {
+    background-color: #0067b8;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    background-color: var(--color-slate-200);
+    color: var(--color-slate-400);
+    box-shadow: none;
+  }
+  @variant dark {
+    &:disabled {
+      background-color: var(--color-slate-700);
+      color: var(--color-slate-400);
+    }
+  }
+}
+
 /* Entrance animations of menus and dialogs (respecting reduced motion). */
 @theme {
   --animate-kpi-pop: kpi-pop 140ms cubic-bezier(0.2, 0.8, 0.2, 1);

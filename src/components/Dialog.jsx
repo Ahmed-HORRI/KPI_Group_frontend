@@ -4,7 +4,7 @@ import { CloseIcon } from "./icons.jsx";
 
 export const buttonClasses = {
   primary:
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#0078D7] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:bg-[#0067b8] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 dark:shadow-none dark:focus-visible:ring-blue-500/30",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl btn-brand px-5 py-2.5 text-sm font-bold shadow-md shadow-blue-500/20 transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 dark:shadow-none dark:focus-visible:ring-blue-500/30",
   secondary:
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus-visible:ring-slate-600/50",
   danger:
@@ -107,7 +107,7 @@ export default function Dialog({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`relative my-auto flex max-h-[calc(100dvh-2rem)] w-full ${size === "lg" ? "max-w-2xl" : "max-w-lg"} flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-900/25 outline-none animate-kpi-dialog sm:max-h-[calc(100dvh-3rem)] dark:bg-slate-900 dark:shadow-black/50 dark:ring-1 dark:ring-slate-800`}
+        className={`relative my-auto flex max-h-[calc(100dvh-2rem)] w-full ${size === "xl" ? "max-w-5xl" : size === "lg" ? "max-w-2xl" : "max-w-lg"} flex-col overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-900/25 outline-none animate-kpi-dialog sm:max-h-[calc(100dvh-3rem)] dark:bg-slate-900 dark:shadow-black/50 dark:ring-1 dark:ring-slate-800`}
       >
         <div className="flex shrink-0 items-start gap-4 px-6 pb-4 pt-6 sm:px-7">
           {Icon ? (

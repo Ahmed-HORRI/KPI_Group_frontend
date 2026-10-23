@@ -638,7 +638,8 @@ export default function ResponsibleDashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col justify-between overflow-y-auto bg-slate-900 p-6 text-slate-300 lg:flex">
+      {/* Sticks below the app's top bar (AppLayout, h-14), which stays in view. */}
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-72 shrink-0 flex-col justify-between overflow-y-auto bg-slate-900 p-6 text-slate-300 lg:flex">
         <div>
           <div className="mb-8 flex items-center justify-center rounded-2xl bg-white px-4 py-3 shadow-lg shadow-black/20">
             <img src="/avocarbon-logo.png" alt="AVOCarbon" className="h-8 w-auto object-contain" />
@@ -647,7 +648,7 @@ export default function ResponsibleDashboardPage() {
           <div className="mb-3 flex flex-col gap-2">
             <button
               type="button"
-              className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 px-3 py-2.5 text-left text-sm font-bold text-white shadow-lg shadow-indigo-900/30 transition hover:-translate-y-0.5"
+              className="flex items-center gap-3 rounded-xl btn-brand px-3 py-2.5 text-left text-sm font-bold shadow-lg shadow-black/20 transition hover:-translate-y-0.5"
               onClick={openCreateKpiModal}
             >
               <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-xs">+</span>

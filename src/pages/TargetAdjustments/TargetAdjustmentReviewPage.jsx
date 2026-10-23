@@ -263,7 +263,7 @@ export default function TargetAdjustmentReviewPage() {
                   {submitting === "reject" ? "Rejecting..." : "Reject"}
                 </button>
                 <button
-                  className="flex-1 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5 disabled:opacity-60"
+                  className="flex-1 rounded-xl btn-brand px-4 py-3 text-sm font-bold shadow-lg transition hover:-translate-y-0.5"
                   onClick={() => submitDecision("approve")}
                   disabled={submitting !== null || (isAbsolute && (lowLimit === "" || highLimit === ""))}
                 >

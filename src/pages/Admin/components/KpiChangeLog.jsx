@@ -28,6 +28,7 @@ const SOURCE_LABELS = {
   dashboard: "Responsible KPI Dashboard",
   kpi_admin: "KPI admin page",
   target_review: "Target adjustment approval",
+  intake: "KPI & Target Intake page",
 };
 
 // Column names of public.kpi / public.kpi_target_allocation, in plain words.

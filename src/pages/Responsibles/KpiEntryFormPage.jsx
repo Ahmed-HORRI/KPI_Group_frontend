@@ -287,7 +287,7 @@ export default function KpiEntryFormPage() {
             {result.dashboard_url && (
               <Link
                 to={result.dashboard_url}
-                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg"
+                className="rounded-xl btn-brand px-5 py-2.5 text-sm font-bold shadow-lg"
               >
                 Go to Dashboard
               </Link>
@@ -361,7 +361,7 @@ export default function KpiEntryFormPage() {
           </p>
           <Link
             to={`/dashboard?responsible_id=${encodeURIComponent(responsibleId)}`}
-            className="mt-6 inline-block rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg"
+            className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
           >
             Go to Dashboard
           </Link>
@@ -373,7 +373,7 @@ export default function KpiEntryFormPage() {
             <button
               type="button"
               onClick={() => setHelpOpen((open) => !open)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[#0ea5f5] to-[#0078D7] px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-500/25 transition hover:-translate-y-0.5"
+              className="inline-flex items-center gap-1.5 rounded-full btn-brand px-4 py-2 text-xs font-bold shadow-md shadow-blue-500/20 transition hover:-translate-y-0.5"
             >
               📍 Help Support
             </button>
@@ -395,7 +395,7 @@ export default function KpiEntryFormPage() {
                 <button
                   type="button"
                   onClick={sendHelpFeedback}
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"
+                  className="rounded-xl btn-brand px-4 py-2 text-sm font-bold"
                 >
                   Send
                 </button>
@@ -449,7 +449,7 @@ export default function KpiEntryFormPage() {
               type="button"
               onClick={openConfirm}
               disabled={submitting || (touched && blockingKpis.length > 0)}
-              className="w-full rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-60"
+              className="w-full rounded-xl btn-brand px-6 py-3.5 text-sm font-bold shadow-lg"
             >
               Submit KPI Values
             </button>
@@ -481,7 +481,7 @@ export default function KpiEntryFormPage() {
               <button
                 type="button"
                 onClick={submit}
-                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white"
+                className="rounded-xl btn-brand px-5 py-2.5 text-sm font-bold"
               >
                 Yes, Submit
               </button>

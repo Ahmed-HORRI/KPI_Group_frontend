@@ -145,7 +145,7 @@ export default function KpiMatrix({
         </div>
         <button
           type="button"
-          className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5"
+          className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
           onClick={onAdd}
         >
           + Add KPI
