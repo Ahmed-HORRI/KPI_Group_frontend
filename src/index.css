@@ -33,6 +33,13 @@
   }
 }
 
+/* Typefaces of the KPI Training Center: that page loads them from Google
+   Fonts, so they are only downloaded when it is opened. */
+@theme {
+  --font-manrope: "Manrope", sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+}
+
 /* Entrance animations of menus and dialogs (respecting reduced motion). */
 @theme {
   --animate-kpi-pop: kpi-pop 140ms cubic-bezier(0.2, 0.8, 0.2, 1);

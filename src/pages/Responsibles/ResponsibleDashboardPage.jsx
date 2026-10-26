@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import { useAuth } from "../../auth/AuthContext.jsx";
 import { useTheme } from "../../theme/ThemeContext.jsx";
 import { ConfirmDialog } from "./components/ui.jsx";
 import KpiMatrix from "./components/KpiMatrix.jsx";
@@ -146,6 +147,12 @@ export default function ResponsibleDashboardPage() {
   );
   const [reportPlantPickerOpen, setReportPlantPickerOpen] = useState(false);
   const reportPlantOptions = ctx.lookups.plants || [];
+
+  // Training Session Dashboard (the training results of every responsible, unfiltered) is shown
+  // to the administrators, the CEO and the VPs (roles "CEO", "VP Finance", "VP Operation", ...).
+  const { isAdmin } = useAuth();
+  const canViewTrainingSessionDashboard =
+    isAdmin || /^(ceo|vp)\b/i.test(String(context?.responsible?.role_name || "").trim());
 
   // ---- view persistence ----
   useEffect(() => {
@@ -693,12 +700,21 @@ export default function ResponsibleDashboardPage() {
             Other Dashboards
           </div>
           <nav className="flex flex-col gap-1">
+            {canViewTrainingSessionDashboard ? (
+              <Link
+                to="/kpi-training-dashboard"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
+              >
+                <span>🎓</span>
+                <span>Training Session Dashboard</span>
+              </Link>
+            ) : null}
             <Link
-              to={`/kpi-training-dashboard?search=${encodeURIComponent(responsibleName || "")}`}
+              to={`/kpi-training-center?people_id=${encodeURIComponent(dashboardResponsibleId)}`}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
             >
-              <span>🎓</span>
-              <span>Training Session Dashboard</span>
+              <span>📚</span>
+              <span>KPI Training Center</span>
             </Link>
             <Link
               to={`/form?responsible_id=${encodeURIComponent(dashboardResponsibleId)}`}

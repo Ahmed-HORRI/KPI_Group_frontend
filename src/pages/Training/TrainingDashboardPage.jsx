@@ -38,7 +38,19 @@ const STATUS_BADGE_CLASSES = {
   escalated: "bg-red-100 text-red-800",
 };
 
-const STATUS_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#34d399", "#ef4444", "#f87171"];
+// One colour per status, so "Failed" stays red whichever other statuses are present.
+const STATUS_COLORS = {
+  training_sent: "#3b82f6",
+  training_done: "#10b981",
+  test_sent: "#8b5cf6",
+  test_overdue: "#f59e0b",
+  completed_pass: "#34d399",
+  completed_fail: "#ef4444",
+  escalated: "#f87171",
+};
+
+// The API sends numeric columns as text ("43.75"): without this the average score adds strings.
+const toNumberOrNull = (value) => (value === null || value === undefined || value === "" ? null : Number(value));
 
 function formatDate(iso) {
   if (!iso) return "—";
@@ -102,9 +114,8 @@ export default function TrainingDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Deep-linked from the Responsible dashboard's "Training Session Dashboard"
-  // nav item (?search=<name>), which pre-fills this same search box instead of
-  // needing a person-scoped variant of this page.
+  // An optional ?search=<text> pre-fills the search box (the Responsible dashboard's
+  // "Training Session Dashboard" link opens the page unfiltered).
   const [search, setSearch] = useState(() => searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState("");
   const [passFilter, setPassFilter] = useState("");
@@ -117,7 +128,13 @@ export default function TrainingDashboardPage() {
       .get("/api/kpi-training/results")
       .then((res) => {
         if (cancelled) return;
-        setAllRows(Array.isArray(res.data) ? res.data : []);
+        setAllRows(
+          (Array.isArray(res.data) ? res.data : []).map((row) => ({
+            ...row,
+            score: toNumberOrNull(row.score),
+            pass_score: toNumberOrNull(row.pass_score),
+          }))
+        );
       })
       .catch((err) => {
         if (cancelled) return;
@@ -168,12 +185,13 @@ export default function TrainingDashboardPage() {
     };
   }, [filteredRows]);
 
+  // The charts describe the same records as the cards and the table: the filtered ones.
   const chartData = useMemo(() => {
     const statusCounts = {};
     const scoreBuckets = { "0-49": 0, "50-69": 0, "70-79": 0, "80-89": 0, "90-100": 0 };
     const byMonth = {};
 
-    allRows.forEach((row) => {
+    filteredRows.forEach((row) => {
       statusCounts[row.status] = (statusCounts[row.status] || 0) + 1;
       if (row.score !== null) {
         if (row.score < 50) scoreBuckets["0-49"] += 1;
@@ -184,13 +202,29 @@ export default function TrainingDashboardPage() {
       }
       const completedDate = row.training_completed_at || row.test_completed_at;
       if (completedDate) {
-        const monthLabel = new Date(completedDate).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
-        byMonth[monthLabel] = (byMonth[monthLabel] || 0) + 1;
+        const date = new Date(completedDate);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
       }
     });
 
-    return { statusCounts, scoreBuckets, byMonth };
-  }, [allRows]);
+    // Statuses in their usual order, months in calendar order.
+    const statuses = [
+      ...Object.keys(STATUS_LABELS).filter((status) => statusCounts[status]),
+      ...Object.keys(statusCounts).filter((status) => !STATUS_LABELS[status]),
+    ];
+    const months = Object.keys(byMonth).sort();
+    return {
+      statuses,
+      statusCounts,
+      scoreBuckets,
+      monthLabels: months.map((key) => {
+        const [year, month] = key.split("-").map(Number);
+        return new Date(year, month - 1, 1).toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+      }),
+      monthCounts: months.map((key) => byMonth[key]),
+    };
+  }, [filteredRows]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const pageRows = filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -264,8 +298,15 @@ export default function TrainingDashboardPage() {
           <div className="h-56">
             <Doughnut
               data={{
-                labels: Object.keys(chartData.statusCounts).map((s) => STATUS_LABELS[s] || s),
-                datasets: [{ data: Object.values(chartData.statusCounts), backgroundColor: STATUS_COLORS, borderWidth: 2, borderColor: "#fff" }],
+                labels: chartData.statuses.map((s) => STATUS_LABELS[s] || s),
+                datasets: [
+                  {
+                    data: chartData.statuses.map((s) => chartData.statusCounts[s]),
+                    backgroundColor: chartData.statuses.map((s) => STATUS_COLORS[s] || "#94a3b8"),
+                    borderWidth: 2,
+                    borderColor: "#fff",
+                  },
+                ],
               }}
               options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } } }}
             />
@@ -288,11 +329,11 @@ export default function TrainingDashboardPage() {
           <div className="h-56">
             <Line
               data={{
-                labels: Object.keys(chartData.byMonth).length ? Object.keys(chartData.byMonth) : ["No Data"],
+                labels: chartData.monthLabels.length ? chartData.monthLabels : ["No Data"],
                 datasets: [
                   {
                     label: "Completions",
-                    data: Object.keys(chartData.byMonth).length ? Object.values(chartData.byMonth) : [0],
+                    data: chartData.monthCounts.length ? chartData.monthCounts : [0],
                     borderColor: "#3b82f6",
                     backgroundColor: "rgba(37,99,235,.10)",
                     borderWidth: 2.5,
