@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
 import { useAuth } from "../../auth/AuthContext.jsx";
+import { CloseIcon, DashboardIcon, MenuIcon } from "../../components/icons.jsx";
 import { useTheme } from "../../theme/ThemeContext.jsx";
 import { ConfirmDialog } from "./components/ui.jsx";
 import KpiMatrix from "./components/KpiMatrix.jsx";
@@ -96,6 +98,33 @@ export default function ResponsibleDashboardPage() {
   const storageKey = `responsible-dashboard-view:${responsibleId}`;
 
   const [view, setView] = useState(() => readStoredView(storageKey));
+
+  // Below lg the sidebar is hidden: the ☰ button opens it as a drawer. While open, the page
+  // behind does not scroll; Escape, the backdrop, the close button, any action of the menu or
+  // widening the window back to the desktop layout closes it.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const menuButtonRef = useRef(null);
+  useEffect(() => {
+    if (!mobileNavOpen) return undefined;
+    const menuButton = menuButtonRef.current;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    };
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onLayoutChange = (event) => {
+      if (event.matches) setMobileNavOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    desktop.addEventListener("change", onLayoutChange);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", onKeyDown);
+      desktop.removeEventListener("change", onLayoutChange);
+      menuButton?.focus({ preventScroll: true });
+    };
+  }, [mobileNavOpen]);
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
 
@@ -643,178 +672,240 @@ export default function ResponsibleDashboardPage() {
       return next;
     });
 
+  // The sidebar: the left column on wide screens, and below lg a drawer opened by the ☰ button
+  // (like the APQP workspace). Its actions close the drawer.
+  const sidebarContent = (
+    <>
+      <div>
+        <div className="mb-3 flex flex-col gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-3 rounded-xl btn-brand px-3 py-2.5 text-left text-sm font-bold shadow-lg shadow-black/20 transition hover:-translate-y-0.5"
+            onClick={() => {
+              setMobileNavOpen(false);
+              openCreateKpiModal();
+            }}
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-xs">+</span>
+            <span>Create KPI</span>
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-3 rounded-xl border border-blue-800 bg-blue-900/60 px-3 py-2.5 text-left text-sm font-bold text-blue-50 transition hover:border-blue-700 hover:bg-blue-900"
+            onClick={() => {
+              setMobileNavOpen(false);
+              openCreateAllocationModal();
+            }}
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 text-xs">🧭</span>
+            <span>Create Target Allocation</span>
+          </button>
+        </div>
+
+        <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          Navigation
+        </div>
+        <nav className="flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => {
+            const active = view === item.view;
+            return (
+              <button
+                key={item.view}
+                type="button"
+                className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                  active ? "bg-blue-900 text-white" : "text-blue-200 hover:bg-blue-900/60 hover:text-white"
+                }`}
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  setView(item.view);
+                }}
+              >
+                {active ? (
+                  <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-orange-500" />
+                ) : null}
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-blue-400">
+          Other Dashboards
+        </div>
+        <nav className="flex flex-col gap-1">
+          {canViewTrainingSessionDashboard ? (
+            <Link
+              to="/kpi-training-dashboard"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-blue-200 transition hover:bg-blue-900/60 hover:text-white"
+            >
+              <span>🎓</span>
+              <span>Training Session Dashboard</span>
+            </Link>
+          ) : null}
+          <Link
+            to={`/kpi-training-center?people_id=${encodeURIComponent(dashboardResponsibleId)}`}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-blue-200 transition hover:bg-blue-900/60 hover:text-white"
+          >
+            <span>📚</span>
+            <span>KPI Training Center</span>
+          </Link>
+          <Link
+            to={`/form?responsible_id=${encodeURIComponent(dashboardResponsibleId)}`}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-blue-200 transition hover:bg-blue-900/60 hover:text-white"
+          >
+            <span>📝</span>
+            <span>KPI Submission Dashboard</span>
+          </Link>
+          {canViewReportDashboard ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setReportPlantPickerOpen((current) => !current)}
+                aria-expanded={reportPlantPickerOpen}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-blue-200 transition hover:bg-blue-900/60 hover:text-white"
+              >
+                <span>📑</span>
+                <span className="flex-1">Report Dashboard</span>
+                <span className={`text-xs transition-transform ${reportPlantPickerOpen ? "rotate-90" : ""}`}>▸</span>
+              </button>
+              {reportPlantPickerOpen ? (
+                <div className="mt-1 max-h-56 overflow-y-auto rounded-xl border border-blue-900 bg-blue-900/60 p-1.5">
+                  {reportPlantOptions.length ? (
+                    reportPlantOptions.map((plant) => (
+                      <Link
+                        key={plant.value}
+                        to={`/ceo-report/plants/${encodeURIComponent(plant.value)}`}
+                        className="block rounded-lg px-3 py-2 text-xs font-semibold text-blue-100 hover:bg-blue-800 hover:text-white"
+                      >
+                        {plant.label}
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-xs text-blue-300">No plants found.</div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </nav>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between rounded-xl border border-blue-900 bg-blue-900/40 px-3 py-2.5">
+          <span className="flex items-center gap-2 text-sm font-semibold text-blue-100">
+            <span>{darkMode ? "🌙" : "☀️"}</span>
+            Dark Mode
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={darkMode}
+            aria-label="Toggle dark mode"
+            onClick={toggleDarkMode}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+              darkMode ? "bg-blue-600" : "bg-blue-800"
+            }`}
+          >
+            <span
+              className={`absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                darkMode ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="rounded-2xl border border-blue-900 bg-blue-900/40 p-4">
+          <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">
+            {(responsibleName || "?")
+              .split(" ")
+              .map((part) => part[0])
+              .filter(Boolean)
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-bold text-white">{responsibleName}</div>
+            <div className="text-[11px] text-blue-300">Responsible workspace</div>
+          </div>
+        </div>
+          <p className="mt-3 text-xs leading-relaxed text-blue-200">
+            Manage KPI definitions, update targets and keep your performance indicators organized in
+            one modern dashboard.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Sticks below the app's top bar (AppLayout, h-14), which stays in view. */}
-      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-72 shrink-0 flex-col justify-between overflow-y-auto bg-slate-900 p-6 text-slate-300 lg:flex">
-        <div>
-          <div className="mb-8 flex items-center justify-center rounded-2xl bg-white px-4 py-3 shadow-lg shadow-black/20">
-            <img src="/avocarbon-logo.png" alt="AVOCarbon" className="h-8 w-auto object-contain" />
-          </div>
-
-          <div className="mb-3 flex flex-col gap-2">
-            <button
-              type="button"
-              className="flex items-center gap-3 rounded-xl btn-brand px-3 py-2.5 text-left text-sm font-bold shadow-lg shadow-black/20 transition hover:-translate-y-0.5"
-              onClick={openCreateKpiModal}
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 text-xs">+</span>
-              <span>Create KPI</span>
-            </button>
-            <button
-              type="button"
-              className="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition hover:border-slate-600 hover:bg-slate-800"
-              onClick={openCreateAllocationModal}
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/10 text-xs">🧭</span>
-              <span>Create Target Allocation</span>
-            </button>
-          </div>
-
-          <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-            Navigation
-          </div>
-          <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
-              const active = view === item.view;
-              return (
-                <button
-                  key={item.view}
-                  type="button"
-                  className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
-                    active ? "bg-slate-800 text-white" : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
-                  }`}
-                  onClick={() => setView(item.view)}
-                >
-                  {active ? (
-                    <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-indigo-400 to-cyan-400" />
-                  ) : null}
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="mb-3 mt-6 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-            Other Dashboards
-          </div>
-          <nav className="flex flex-col gap-1">
-            {canViewTrainingSessionDashboard ? (
-              <Link
-                to="/kpi-training-dashboard"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
-              >
-                <span>🎓</span>
-                <span>Training Session Dashboard</span>
-              </Link>
-            ) : null}
-            <Link
-              to={`/kpi-training-center?people_id=${encodeURIComponent(dashboardResponsibleId)}`}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
-            >
-              <span>📚</span>
-              <span>KPI Training Center</span>
-            </Link>
-            <Link
-              to={`/form?responsible_id=${encodeURIComponent(dashboardResponsibleId)}`}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
-            >
-              <span>📝</span>
-              <span>KPI Submission Dashboard</span>
-            </Link>
-            {canViewReportDashboard ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setReportPlantPickerOpen((current) => !current)}
-                  aria-expanded={reportPlantPickerOpen}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-400 transition hover:bg-slate-800/60 hover:text-white"
-                >
-                  <span>📑</span>
-                  <span className="flex-1">Report Dashboard</span>
-                  <span className={`text-xs transition-transform ${reportPlantPickerOpen ? "rotate-90" : ""}`}>▸</span>
-                </button>
-                {reportPlantPickerOpen ? (
-                  <div className="mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-800 bg-slate-800/60 p-1.5">
-                    {reportPlantOptions.length ? (
-                      reportPlantOptions.map((plant) => (
-                        <Link
-                          key={plant.value}
-                          to={`/ceo-report/plants/${encodeURIComponent(plant.value)}`}
-                          className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white"
-                        >
-                          {plant.label}
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-xs text-slate-500">No plants found.</div>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </nav>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/40 px-3 py-2.5">
-            <span className="flex items-center gap-2 text-sm font-semibold text-slate-300">
-              <span>{darkMode ? "🌙" : "☀️"}</span>
-              Dark Mode
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={darkMode}
-              aria-label="Toggle dark mode"
-              onClick={toggleDarkMode}
-              className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                darkMode ? "bg-indigo-500" : "bg-slate-700"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                  darkMode ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-4">
-            <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-xs font-black text-white">
-              {(responsibleName || "?")
-                .split(" ")
-                .map((part) => part[0])
-                .filter(Boolean)
-                .slice(0, 2)
-                .join("")
-                .toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-bold text-white">{responsibleName}</div>
-              <div className="text-[11px] text-slate-500">Responsible workspace</div>
-            </div>
-          </div>
-            <p className="mt-3 text-xs leading-relaxed text-slate-400">
-              Manage KPI definitions, update targets and keep your performance indicators organized in
-              one modern dashboard.
-            </p>
-          </div>
-        </div>
+      <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-72 shrink-0 flex-col justify-between overflow-y-auto bg-blue-950 p-6 text-blue-100 [color-scheme:dark] [scrollbar-color:var(--color-blue-800)_transparent] lg:flex dark:border-r dark:border-slate-800">
+        {sidebarContent}
       </aside>
 
-      <main className="min-w-0 flex-1 p-6 lg:p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Responsible KPI Dashboard
-          </h1>
-          <p className="mt-2 max-w-4xl text-sm text-slate-500 dark:text-slate-400">
-            Modern KPI workspace for {responsibleName}. KPI creation stays linked to this
-            responsible, while target allocation consulting can review and manage all allocations.
-          </p>
+      {mobileNavOpen ? (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px] animate-kpi-fade"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="KPI workspace menu"
+            className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col justify-between gap-6 overflow-y-auto bg-blue-950 p-6 pt-14 text-blue-100 [color-scheme:dark] [scrollbar-color:var(--color-blue-800)_transparent] shadow-2xl shadow-black/40 animate-kpi-drawer"
+          >
+            <button
+              type="button"
+              autoFocus
+              aria-label="Close menu"
+              onClick={() => setMobileNavOpen(false)}
+              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl text-blue-200 transition hover:bg-blue-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              <CloseIcon size={18} />
+            </button>
+            {sidebarContent}
+          </aside>
         </div>
+      ) : null}
+
+      <main className="min-w-0 flex-1 p-6 lg:p-8">
+        {/* Below lg: the ☰ button of the menu, kept in view under the app's top bar (h-14). */}
+        <div className="sticky top-14 z-20 -mx-6 -mt-6 mb-6 flex items-center gap-3 border-b border-slate-200 bg-slate-50/95 px-4 py-2.5 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+          <button
+            ref={menuButtonRef}
+            type="button"
+            aria-label="Open menu"
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(true)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 dark:text-slate-300 dark:focus-visible:ring-blue-500/40 dark:hover:bg-slate-800 dark:hover:text-white"
+          >
+            <MenuIcon size={20} />
+          </button>
+          <span className="text-xs text-slate-400 dark:text-slate-500">KPI workspace</span>
+          <span className="text-slate-300 dark:text-slate-600">/</span>
+          <span className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {NAV_ITEMS.find((item) => item.view === view)?.label || "Consult KPI"}
+          </span>
+        </div>
+
+        <BoardTitle
+          className="mb-6"
+          icon={DashboardIcon}
+          eyebrow="KPI workspace"
+          title="Responsible KPI Dashboard"
+          subtitle={
+            <>
+              Modern KPI workspace for {responsibleName}. KPI creation stays linked to this
+              responsible, while target allocation consulting can review and manage all allocations.
+            </>
+          }
+        />
 
         {/* Mobile / narrow nav */}
         <div className="mb-6 flex flex-wrap gap-2 lg:hidden">
@@ -862,7 +953,7 @@ export default function ResponsibleDashboardPage() {
           />
         ) : null}
 
-        {view === "my-kpis" ? <KpiChartsSection responsibleId={responsibleId} darkMode={darkMode} /> : null}
+        {view === "my-kpis" ? <KpiChartsSection responsibleId={responsibleId} /> : null}
 
         {view === "consult-target-allocation" ? (
           <TargetAllocationMatrix
@@ -950,7 +1041,7 @@ export default function ResponsibleDashboardPage() {
       ) : null}
 
       {toast ? (
-        <div className="fixed bottom-6 right-6 z-[80] rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-[80] rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-2xl dark:bg-slate-700">
           {toast}
         </div>
       ) : null}

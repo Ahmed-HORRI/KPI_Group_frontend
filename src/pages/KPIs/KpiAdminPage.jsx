@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { TargetIcon } from "../../components/icons.jsx";
 import {
   KFS_OPTIONS,
   UNIT_OPTIONS,
@@ -22,7 +24,7 @@ import {
 function Field({ label, children }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-semibold text-slate-600">{label}</span>
+      <span className="font-semibold text-slate-600 dark:text-slate-300">{label}</span>
       {children}
     </label>
   );
@@ -38,7 +40,7 @@ function withCurrentValue(options, current) {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100";
+  "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15";
 
 export default function KpiAdminPage() {
   const [rows, setRows] = useState([]);
@@ -184,16 +186,16 @@ export default function KpiAdminPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] p-6">
-      <div className="relative mb-6 flex flex-wrap items-center justify-between gap-5 overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-8 shadow-xl">
-        <div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900">KPI Management Dashboard</h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-500">
-            Create, update and manage all KPI definitions used across the organization.
-          </p>
-        </div>
+      <div className="relative mb-6 flex flex-wrap items-center justify-between gap-5 overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white dark:from-slate-900 to-blue-50 dark:to-blue-500/10 p-8 shadow-xl">
+        <BoardTitle
+          icon={TargetIcon}
+          eyebrow="KPI definitions"
+          title="KPI Management Dashboard"
+          subtitle="Create, update and manage all KPI definitions used across the organization."
+        />
         <div className="flex gap-3">
           <button
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold shadow-sm transition hover:-translate-y-0.5"
+            className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-extrabold shadow-sm transition hover:-translate-y-0.5"
             onClick={() => loadKpis(search)}
           >
             Refresh
@@ -216,16 +218,16 @@ export default function KpiAdminPage() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl backdrop-blur">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-          <h3 className="text-lg font-bold text-slate-800">KPI Master List</h3>
-          <span className="text-sm text-slate-500">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-xl backdrop-blur">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-5">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white">KPI Master List</h3>
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             Total rows: <strong>{rowCount}</strong>
           </span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3">ID</th>
                 <th className="px-4 py-3">Indicator</th>
@@ -239,48 +241,48 @@ export default function KpiAdminPage() {
             <tbody>
               {loadingTable && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-14 text-center text-slate-400 dark:text-slate-500">
                     Loading KPIs...
                   </td>
                 </tr>
               )}
               {!loadingTable && rowCount === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-14 text-center text-slate-400 dark:text-slate-500">
                     No KPI found.
                   </td>
                 </tr>
               )}
               {!loadingTable &&
                 rows.map((row) => (
-                  <tr key={row.kpi_id} className="border-t border-slate-100 hover:bg-slate-50">
+                  <tr key={row.kpi_id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-600 dark:text-slate-300">
                         #{row.kpi_id}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-800">{row.indicator_title || "Untitled KPI"}</div>
-                      <div className="text-xs text-slate-400">{row.indicator_sub_title || ""}</div>
+                      <div className="font-semibold text-slate-800 dark:text-white">{row.indicator_title || "Untitled KPI"}</div>
+                      <div className="text-xs text-slate-400 dark:text-slate-500">{row.indicator_sub_title || ""}</div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{row.subject || ""}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.subject || ""}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                      <span className="rounded-full bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
                         {row.unit || "-"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{row.target ?? "-"}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.status || "-"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.target ?? "-"}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.status || "-"}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                          className="rounded-lg border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                           onClick={() => openEditDrawer(row.kpi_id)}
                         >
                           Edit
                         </button>
                         <button
-                          className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50"
+                          className="rounded-lg border border-red-200 dark:border-red-500/30 px-2.5 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                           onClick={() => deleteKpi(row.kpi_id)}
                         >
                           Delete
@@ -297,14 +299,14 @@ export default function KpiAdminPage() {
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40" onClick={closeDrawer}>
           <div
-            className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white p-6 shadow-2xl"
+            className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white dark:bg-slate-900 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                 {selectedKpiId ? `Edit KPI #${selectedKpiId}` : "Create KPI"}
               </h2>
-              <button className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold" onClick={closeDrawer}>
+              <button className="rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-sm font-semibold" onClick={closeDrawer}>
                 Close
               </button>
             </div>
@@ -343,7 +345,7 @@ export default function KpiAdminPage() {
                   value={form.subject}
                   onChange={(e) => updateField("subject", e.target.value)}
                 />
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-400 dark:text-slate-500">
                   Must match an existing subject name or full hierarchy path exactly (case-insensitive).
                 </span>
               </Field>
@@ -455,7 +457,7 @@ export default function KpiAdminPage() {
                 </Field>
               </div>
 
-              <div className="section-title border-t border-slate-100 pt-4 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <div className="section-title border-t border-slate-100 dark:border-slate-800 pt-4 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Calculation logic
               </div>
 
@@ -547,12 +549,12 @@ export default function KpiAdminPage() {
                 />
               </Field>
 
-              <div className="section-title border-t border-slate-100 pt-4 text-xs font-bold uppercase tracking-wide text-slate-400">
+              <div className="section-title border-t border-slate-100 dark:border-slate-800 pt-4 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Tolerance
               </div>
               <div className="flex gap-6">
                 {TOLERANCE_TYPE_OPTIONS.map((o) => (
-                  <label key={o} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <label key={o} className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                     <input
                       type="radio"
                       name="tolerance_type_radio"
@@ -610,8 +612,8 @@ export default function KpiAdminPage() {
               )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
-              <button className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold" onClick={closeDrawer}>
+            <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+              <button className="rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-sm font-bold" onClick={closeDrawer}>
                 Cancel
               </button>
               <button
@@ -627,7 +629,7 @@ export default function KpiAdminPage() {
       )}
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-[60] rounded-xl bg-slate-900 dark:bg-slate-700 px-4 py-3 text-sm font-semibold text-white shadow-2xl">
           {toast}
         </div>
       )}

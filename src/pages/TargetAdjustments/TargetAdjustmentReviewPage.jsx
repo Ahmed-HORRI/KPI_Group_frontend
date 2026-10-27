@@ -22,9 +22,9 @@ function getDisplayName(firstName, name) {
 }
 
 function statusBadgeClasses(status) {
-  if (status === "Pending approval") return "bg-amber-50 text-amber-700";
-  if (status === "Approved") return "bg-green-50 text-green-700";
-  return "bg-red-50 text-red-700";
+  if (status === "Pending approval") return "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300";
+  if (status === "Approved") return "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300";
+  return "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300";
 }
 
 export default function TargetAdjustmentReviewPage() {
@@ -74,15 +74,15 @@ export default function TargetAdjustmentReviewPage() {
   }, [token]);
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading proposal...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading proposal...</div>;
   }
 
   if (loadError && !proposal) {
     return (
       <div className="mx-auto max-w-xl p-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
-          <h1 className="text-xl font-extrabold text-slate-900">Invalid link</h1>
-          <p className="mt-3 text-sm text-slate-500">{loadError}</p>
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-xl">
+          <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Invalid link</h1>
+          <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{loadError}</p>
         </div>
       </div>
     );
@@ -126,15 +126,15 @@ export default function TargetAdjustmentReviewPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-        <div className="h-2 bg-gradient-to-r from-teal-500 to-blue-500" />
+      <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+        <div className="brand-bar h-2" />
         <div className="p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {activeProposal?.kpi_name || "KPI"}
               </h1>
-              <p className="mt-1 text-sm text-slate-500">Target adjustment proposal</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Target adjustment proposal</p>
             </div>
             <span
               className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${statusBadgeClasses(
@@ -148,7 +148,7 @@ export default function TargetAdjustmentReviewPage() {
           {message && (
             <div
               className={`mt-5 rounded-xl px-4 py-3 text-sm font-semibold ${
-                messageIsError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+                messageIsError ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300"
               }`}
             >
               {message}
@@ -156,34 +156,34 @@ export default function TargetAdjustmentReviewPage() {
           )}
 
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <span className="text-xs text-slate-500">Current target</span>
-              <strong className="mt-1 block text-xl text-slate-800">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Current target</span>
+              <strong className="mt-1 block text-xl text-slate-800 dark:text-white">
                 {activeProposal?.previous_target_value} {activeProposal?.target_unit || ""}
               </strong>
             </div>
-            <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-              <span className="text-xs text-teal-700">Proposed target</span>
-              <strong className="mt-1 block text-xl text-teal-800">
+            <div className="rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-4">
+              <span className="text-xs text-blue-700 dark:text-blue-300">Proposed target</span>
+              <strong className="mt-1 block text-xl text-blue-900 dark:text-blue-200">
                 {activeProposal?.proposed_target_value} {activeProposal?.target_unit || ""}
               </strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <span className="text-xs text-slate-500">Direction</span>
-              <strong className="mt-1 block text-base text-slate-800">{directionLabel}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Direction</span>
+              <strong className="mt-1 block text-base text-slate-800 dark:text-white">{directionLabel}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <span className="text-xs text-slate-500">Responsible</span>
-              <strong className="mt-1 block text-base text-slate-800">{responsibleName}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-4">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Responsible</span>
+              <strong className="mt-1 block text-base text-slate-800 dark:text-white">{responsibleName}</strong>
             </div>
           </div>
 
-          <p className="mt-5 text-sm text-slate-600">
-            <strong className="font-bold text-slate-800">Reason: </strong>
+          <p className="mt-5 text-sm text-slate-600 dark:text-slate-300">
+            <strong className="font-bold text-slate-800 dark:text-white">Reason: </strong>
             {getReasonLabel(activeProposal?.trigger_reason)}
           </p>
-          <p className="mt-2 text-sm text-slate-600">
-            <strong className="font-bold text-slate-800">Improvement: </strong>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            <strong className="font-bold text-slate-800 dark:text-white">Improvement: </strong>
             {activeProposal?.improvement_percentage === null || activeProposal?.improvement_percentage === undefined
               ? "Not calculable"
               : `${activeProposal.improvement_percentage}%`}
@@ -191,19 +191,19 @@ export default function TargetAdjustmentReviewPage() {
 
           {evidence.length > 0 && (
             <div className="mt-5">
-              <h3 className="text-sm font-bold text-slate-800">Analyzed values</h3>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">Analyzed values</h3>
               <table className="mt-2 w-full text-left text-sm">
-                <thead className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                <thead className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                   <tr>
-                    <th className="border-b border-slate-100 py-2">Period</th>
-                    <th className="border-b border-slate-100 py-2">Actual value</th>
+                    <th className="border-b border-slate-100 dark:border-slate-800 py-2">Period</th>
+                    <th className="border-b border-slate-100 dark:border-slate-800 py-2">Actual value</th>
                   </tr>
                 </thead>
                 <tbody>
                   {evidence.map((entry, index) => (
                     <tr key={index}>
-                      <td className="border-b border-slate-50 py-2 text-slate-600">{entry.period_label || "—"}</td>
-                      <td className="border-b border-slate-50 py-2 text-slate-600">{entry.actual_value}</td>
+                      <td className="border-b border-slate-50 dark:border-slate-800 py-2 text-slate-600 dark:text-slate-300">{entry.period_label || "—"}</td>
+                      <td className="border-b border-slate-50 dark:border-slate-800 py-2 text-slate-600 dark:text-slate-300">{entry.actual_value}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -212,13 +212,13 @@ export default function TargetAdjustmentReviewPage() {
           )}
 
           {isPending ? (
-            <div className="mt-6 border-t border-slate-100 pt-5">
+            <div className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5">
               {isAbsolute ? (
                 <div className="grid grid-cols-2 gap-4">
                   <label className="flex flex-col gap-1.5 text-sm">
-                    <span className="font-semibold text-slate-600">Low Limit</span>
+                    <span className="font-semibold text-slate-600 dark:text-slate-300">Low Limit</span>
                     <input
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                       type="number"
                       step="any"
                       required
@@ -227,9 +227,9 @@ export default function TargetAdjustmentReviewPage() {
                     />
                   </label>
                   <label className="flex flex-col gap-1.5 text-sm">
-                    <span className="font-semibold text-slate-600">High Limit</span>
+                    <span className="font-semibold text-slate-600 dark:text-slate-300">High Limit</span>
                     <input
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                       type="number"
                       step="any"
                       required
@@ -239,15 +239,15 @@ export default function TargetAdjustmentReviewPage() {
                   </label>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Relative limits will be recalculated automatically after approval.
                 </p>
               )}
 
               <label className="mt-4 flex flex-col gap-1.5 text-sm">
-                <span className="font-semibold text-slate-600">Manager comment</span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">Manager comment</span>
                 <textarea
-                  className="min-h-[90px] w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="min-h-[90px] w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   placeholder="Decision reason or comment"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
@@ -256,7 +256,7 @@ export default function TargetAdjustmentReviewPage() {
 
               <div className="mt-5 flex gap-3">
                 <button
-                  className="flex-1 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700 shadow-sm transition hover:-translate-y-0.5 disabled:opacity-60"
+                  className="flex-1 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 shadow-sm transition hover:-translate-y-0.5 disabled:opacity-60"
                   onClick={() => submitDecision("reject")}
                   disabled={submitting !== null || (isAbsolute && (lowLimit === "" || highLimit === ""))}
                 >
@@ -273,7 +273,7 @@ export default function TargetAdjustmentReviewPage() {
             </div>
           ) : (
             !message && (
-              <p className="mt-6 border-t border-slate-100 pt-5 text-sm text-slate-500">
+              <p className="mt-6 border-t border-slate-100 dark:border-slate-800 pt-5 text-sm text-slate-500 dark:text-slate-400">
                 This proposal has already been processed.
               </p>
             )

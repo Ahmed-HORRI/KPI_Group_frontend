@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { getApiErrorMessage } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { getHomePath } from "../../auth/RouteGuards";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { KeyIcon } from "../../components/icons.jsx";
 import {
   FormAlert,
   PasswordChecklist,
@@ -49,12 +51,16 @@ export default function ChangePasswordPage() {
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
       <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">Change password</h1>
-        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-          {forced
-            ? "Your administrator gave you a temporary password. Choose your own password to continue."
-            : "Your other signed-in devices will be signed out."}
-        </p>
+        <BoardTitle
+          icon={KeyIcon}
+          eyebrow="KPI Manager account"
+          title="Change password"
+          subtitle={
+            forced
+              ? "Your administrator gave you a temporary password. Choose your own password to continue."
+              : "Your other signed-in devices will be signed out."
+          }
+        />
 
         <form onSubmit={submit} className="mt-6 flex flex-col gap-4" noValidate>
           {done ? <FormAlert tone="success">Your password has been changed.</FormAlert> : null}
@@ -104,7 +110,7 @@ export default function ChangePasswordPage() {
               Log out
             </button>
           ) : (
-            <Link to={getHomePath(user)} className="font-semibold text-[#0078D7] hover:underline dark:text-blue-400">
+            <Link to={getHomePath(user)} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
               Back to my dashboard
             </Link>
           )}

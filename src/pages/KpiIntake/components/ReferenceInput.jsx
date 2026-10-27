@@ -169,12 +169,12 @@ export default function ReferenceInput({
           setOpen(true);
           onChange(event.target.value.trim() ? event.target.value : "");
         }}
-        className={`h-9 w-full rounded-lg border bg-white pl-2.5 pr-7 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-500 ${
-          invalid ? "border-red-300 bg-red-50/60" : "border-slate-200"
+        className={`h-9 w-full rounded-lg border bg-white dark:bg-slate-800 pl-2.5 pr-7 text-sm text-slate-900 dark:text-white outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/15 disabled:bg-slate-50 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400 ${
+          invalid ? "border-red-300 dark:border-red-500/50 bg-red-50/60 dark:bg-red-500/10" : "border-slate-200 dark:border-slate-700"
         }`}
       />
       {picked ? (
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-emerald-500" title="Picked from the list">
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-emerald-500 dark:text-emerald-400" title="Picked from the list">
           <CheckIcon size={14} />
         </span>
       ) : text.trim() ? (
@@ -192,7 +192,7 @@ export default function ReferenceInput({
             role="listbox"
             onMouseDown={(event) => event.preventDefault()}
             style={{ left: position.left, width: position.width, top: position.top ?? undefined, bottom: position.bottom ?? undefined }}
-            className="fixed z-[80] max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl shadow-slate-900/10 animate-kpi-pop"
+            className="fixed z-[80] max-h-64 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-xl shadow-slate-900/10 animate-kpi-pop"
           >
             {visible.length ? (
               visible.map((option, index) => {
@@ -207,23 +207,23 @@ export default function ReferenceInput({
                     onClick={() => pick(option)}
                     onMouseEnter={() => setActiveIndex(index)}
                     className={`flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm ${
-                      index === activeIndex ? "bg-blue-50 text-blue-900" : "text-slate-700"
+                      index === activeIndex ? "bg-blue-50 dark:bg-blue-500/10 text-blue-900 dark:text-blue-200" : "text-slate-700 dark:text-slate-200"
                     }`}
                   >
                     <span className="min-w-0 flex-1 truncate" title={option.label}>
                       {option.label}
                     </span>
                     {option.intake_id ? (
-                      <span className="shrink-0 rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-600">
+                      <span className="shrink-0 rounded-full bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300">
                         New
                       </span>
                     ) : null}
-                    {selected ? <CheckIcon size={14} className="shrink-0 text-blue-600" /> : null}
+                    {selected ? <CheckIcon size={14} className="shrink-0 text-blue-600 dark:text-blue-400" /> : null}
                   </div>
                 );
               })
             ) : (
-              <div className="px-2.5 py-2 text-xs text-slate-500">{hint}</div>
+              <div className="px-2.5 py-2 text-xs text-slate-500 dark:text-slate-400">{hint}</div>
             )}
           </div>,
           document.body

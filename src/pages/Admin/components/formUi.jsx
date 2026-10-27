@@ -42,13 +42,13 @@ export function FieldLabel({ label, required, hint, htmlFor, children }) {
 // Radio choice rendered as a selectable card.
 export function ChoiceCard({ name, value, checked, onChange, icon: Icon, title, description, disabled, tone = "brand" }) {
   const checkedTone =
-    tone === "violet"
-      ? "border-violet-300 bg-violet-50/60 ring-4 ring-violet-100 dark:border-violet-500/50 dark:bg-violet-500/10 dark:ring-violet-500/15"
+    tone === "orange"
+      ? "border-orange-300 bg-orange-50/60 ring-4 ring-orange-100 dark:border-orange-500/50 dark:bg-orange-500/10 dark:ring-orange-500/15"
       : "border-blue-300 bg-blue-50/60 ring-4 ring-blue-100 dark:border-blue-500/50 dark:bg-blue-500/10 dark:ring-blue-500/15";
   const iconTone = checked
-    ? tone === "violet"
-      ? "bg-violet-600 text-white"
-      : "bg-[#0078D7] text-white"
+    ? tone === "orange"
+      ? "bg-orange-700 text-white"
+      : "bg-blue-600 text-white"
     : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400";
   return (
     <label
@@ -79,16 +79,16 @@ export function ChoiceCard({ name, value, checked, onChange, icon: Icon, title, 
       <span
         className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition peer-focus-visible:ring-4 peer-focus-visible:ring-blue-200 ${
           checked
-            ? tone === "violet"
-              ? "border-violet-600 dark:border-violet-400"
-              : "border-[#0078D7] dark:border-blue-400"
+            ? tone === "orange"
+              ? "border-orange-600 dark:border-orange-400"
+              : "border-blue-600 dark:border-blue-400"
             : "border-slate-300 dark:border-slate-600"
         }`}
         aria-hidden="true"
       >
         {checked ? (
           <span
-            className={`h-1.5 w-1.5 rounded-full ${tone === "violet" ? "bg-violet-600 dark:bg-violet-400" : "bg-[#0078D7] dark:bg-blue-400"}`}
+            className={`h-1.5 w-1.5 rounded-full ${tone === "orange" ? "bg-orange-600 dark:bg-orange-400" : "bg-blue-600 dark:bg-blue-400"}`}
           />
         ) : null}
       </span>

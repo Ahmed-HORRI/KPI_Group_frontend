@@ -200,7 +200,7 @@ export default function TargetAllocationModal({
       ? "green"
       : isProductLineScope
         ? "blue"
-        : "violet";
+        : "orange";
 
   return (
     <Modal

@@ -11,6 +11,8 @@ import {
   Legend,
 } from "chart.js";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { ChartIcon } from "../../components/icons.jsx";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -33,25 +35,26 @@ function isValueGood(value, lowLimit, highLimit) {
 }
 
 function TrendChart({ kpi, chart }) {
+  const colors = useChartColors();
   const highLimit = chart.highLimit !== null && chart.highLimit !== undefined ? Number(chart.highLimit) : null;
   const lowLimit = chart.lowLimit !== null && chart.lowLimit !== undefined ? Number(chart.lowLimit) : null;
   const target = chart.target !== null && chart.target !== undefined ? Number(chart.target) : null;
   const values = chart.values || [];
 
   const pointColors = values.map((v) => {
-    if (v === null || v === undefined) return "#cbd5e1";
+    if (v === null || v === undefined) return colors.missing;
     const g = isValueGood(v, lowLimit, highLimit);
-    return g === false ? "#dc2626" : "#22c55e";
+    return g === false ? colors.critical : colors.good;
   });
 
   const datasets = [
     {
       label: kpi.indicator_sub_title || kpi.subject,
       data: values,
-      borderColor: "#94a3b8",
+      borderColor: colors.value,
       borderWidth: 2,
       pointBackgroundColor: pointColors,
-      pointBorderColor: "#ffffff",
+      pointBorderColor: colors.surface,
       pointBorderWidth: 2,
       pointRadius: 4,
       spanGaps: true,
@@ -59,27 +62,27 @@ function TrendChart({ kpi, chart }) {
     },
   ];
   if (highLimit !== null) {
-    datasets.push({ label: `High Limit (${highLimit})`, data: values.map(() => highLimit), borderColor: "#f97316", borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0 });
+    datasets.push({ label: `High Limit (${highLimit})`, data: values.map(() => highLimit), borderColor: colors.limit, borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0 });
   }
   if (target !== null) {
-    datasets.push({ label: `Target (${target})`, data: values.map(() => target), borderColor: "#16a34a", borderWidth: 2, pointRadius: 0 });
+    datasets.push({ label: `Target (${target})`, data: values.map(() => target), borderColor: colors.target, borderWidth: 2, pointRadius: 0 });
   }
   if (lowLimit !== null) {
-    datasets.push({ label: `Low Limit (${lowLimit})`, data: values.map(() => lowLimit), borderColor: "#dc2626", borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0 });
+    datasets.push({ label: `Low Limit (${lowLimit})`, data: values.map(() => lowLimit), borderColor: colors.limit, borderWidth: 1.5, borderDash: [6, 4], pointRadius: 0 });
   }
 
   const good = isValueGood(chart.currentValue, lowLimit, highLimit);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-2">
         <div>
-          <div className="text-sm font-bold text-slate-800">{kpi.indicator_sub_title || kpi.subject}</div>
-          <div className="text-xs text-slate-400">{kpi.subject}</div>
+          <div className="text-sm font-bold text-slate-800 dark:text-white">{kpi.indicator_sub_title || kpi.subject}</div>
+          <div className="text-xs text-slate-400 dark:text-slate-500">{kpi.subject}</div>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
-            good === false ? "bg-red-50 text-red-600" : good === true ? "bg-green-50 text-green-600" : "bg-slate-100 text-slate-500"
+            good === false ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400" : good === true ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           }`}
         >
           {chart.currentValue ?? "—"} {kpi.unit || ""}
@@ -92,7 +95,7 @@ function TrendChart({ kpi, chart }) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: "rgba(148,163,184,0.15)" } } },
+            scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: colors.text } }, y: { grid: { color: colors.grid }, ticks: { color: colors.text } } },
           }}
         />
       </div>
@@ -172,7 +175,7 @@ export default function KpiTrendsPage() {
   if (!responsibleId) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id
         </div>
       </div>
@@ -180,19 +183,19 @@ export default function KpiTrendsPage() {
   }
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading KPI trends...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading KPI trends...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   if (kpisWithCharts.length === 0) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center p-6">
-        <div className="rounded-3xl bg-white p-10 text-center shadow-xl">
-          <h1 className="text-2xl font-bold text-slate-800">No KPI Trends Available</h1>
-          <p className="mt-2 text-sm text-slate-500">Start filling KPI forms to see trend charts.</p>
+        <div className="rounded-3xl bg-white dark:bg-slate-900 p-10 text-center shadow-xl">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">No KPI Trends Available</h1>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Start filling KPI forms to see trend charts.</p>
           <Link
             to={`/form?responsible_id=${encodeURIComponent(responsibleId)}`}
             className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
@@ -206,7 +209,7 @@ export default function KpiTrendsPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] p-6">
-      <h1 className="mb-6 text-2xl font-extrabold text-slate-900">KPI Trends</h1>
+      <BoardTitle className="mb-6" icon={ChartIcon} eyebrow="KPI analytics" title="KPI Trends" />
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {kpisWithCharts.map((kpi) => (
           <TrendChart

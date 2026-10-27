@@ -8,8 +8,8 @@ const COLUMN_WIDTHS = { text: 190, longtext: 260, number: 120, tolerance: 120, d
 const WIDE_COLUMNS = { kpi_name: 240, kpi_id: 300 };
 
 const inputClass = (invalid) =>
-  `h-9 w-full rounded-lg border bg-white px-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-500 ${
-    invalid ? "border-red-300 bg-red-50/60" : "border-slate-200"
+  `h-9 w-full rounded-lg border bg-white dark:bg-slate-800 px-2.5 text-sm text-slate-900 dark:text-white outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-500/15 disabled:bg-slate-50 dark:disabled:bg-slate-800 disabled:text-slate-500 dark:disabled:text-slate-400 ${
+    invalid ? "border-red-300 dark:border-red-500/50 bg-red-50/60 dark:bg-red-500/10" : "border-slate-200 dark:border-slate-700"
   }`;
 
 const formatInfo = (column, value) => {
@@ -122,8 +122,8 @@ function Cell({ column, value, invalid, disabled, onChange, referenceOptions, se
 function ReadOnlyCell({ value }) {
   const text = cellText(value);
   return (
-    <div className="max-w-[260px] truncate px-1 py-2 text-sm text-slate-700" title={text || undefined}>
-      {text || <span className="text-slate-300">—</span>}
+    <div className="max-w-[260px] truncate px-1 py-2 text-sm text-slate-700 dark:text-slate-200" title={text || undefined}>
+      {text || <span className="text-slate-300 dark:text-slate-600">—</span>}
     </div>
   );
 }
@@ -160,11 +160,11 @@ export default function IntakeGrid({
   };
 
   return (
-    <div className="max-h-[64vh] overflow-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="max-h-[64vh] overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
       <table className="min-w-max border-separate border-spacing-0 text-left text-sm">
         <thead className="sticky top-0 z-20">
           <tr>
-            <th className="sticky left-0 z-30 w-[220px] min-w-[220px] border-b border-r border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <th className="sticky left-0 z-30 w-[220px] min-w-[220px] border-b border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Line
             </th>
             {columns.map((column) => {
@@ -173,13 +173,13 @@ export default function IntakeGrid({
                 <th
                   key={column.key}
                   style={{ minWidth: WIDE_COLUMNS[column.key] || COLUMN_WIDTHS[column.type] || 180 }}
-                  className="border-b border-slate-200 bg-slate-50 px-2 py-2.5 text-xs font-bold text-slate-600"
+                  className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-2 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300"
                   title={condition || undefined}
                 >
                   <span className="whitespace-nowrap">
                     {column.label}
-                    {column.required ? <span className="ml-0.5 text-red-500" aria-label="required">*</span> : null}
-                    {condition ? <span className="ml-0.5 text-amber-500" aria-label={condition}>*</span> : null}
+                    {column.required ? <span className="ml-0.5 text-red-500 dark:text-red-400" aria-label="required">*</span> : null}
+                    {condition ? <span className="ml-0.5 text-amber-500 dark:text-amber-400" aria-label={condition}>*</span> : null}
                   </span>
                 </th>
               );
@@ -187,7 +187,7 @@ export default function IntakeGrid({
             {infoColumns.map((column) => (
               <th
                 key={`info-${column.key}`}
-                className="min-w-[120px] border-b border-l border-slate-200 bg-slate-100/70 px-2 py-2.5 text-xs font-bold text-slate-500"
+                className="min-w-[120px] border-b border-l border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/70 px-2 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400"
                 title="Set by the application — read only"
               >
                 <span className="whitespace-nowrap">{column.label}</span>
@@ -221,19 +221,19 @@ export default function IntakeGrid({
                 : "Remove this line";
             return (
               <tr key={line.key} className="group align-top">
-                <td className="sticky left-0 z-10 w-[220px] min-w-[220px] max-w-[220px] border-b border-r border-slate-100 bg-white px-3 py-2 group-hover:bg-slate-50/80">
+                <td className="sticky left-0 z-10 w-[220px] min-w-[220px] max-w-[220px] border-b border-r border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-800/80">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <StatusChip status={status} />
                         {dirty && line.intake_id ? (
-                          <span className="text-[11px] font-semibold text-blue-600">edited</span>
+                          <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">edited</span>
                         ) : null}
                         {record && !record.active ? (
-                          <span className="text-[11px] font-semibold text-slate-400">inactive</span>
+                          <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">inactive</span>
                         ) : null}
                       </div>
-                      <div className="mt-1 truncate text-[11px] text-slate-400">
+                      <div className="mt-1 truncate text-[11px] text-slate-400 dark:text-slate-500">
                         {line.record_id ? `${recordNoun} #${line.record_id}${line.intake_id ? ` · change #${line.intake_id}` : ""}` : null}
                         {!line.record_id ? (line.intake_id ? `#${line.intake_id}` : "new line") : null}
                         {line.submitted_by?.label ? ` · ${line.submitted_by.label.split(" — ")[0]}` : ""}
@@ -246,7 +246,7 @@ export default function IntakeGrid({
                           type="button"
                           onClick={() => onDuplicate(line)}
                           disabled={disabled}
-                          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
+                          className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-40"
                           title={line.record_id ? "Copy as a new line" : "Duplicate this line"}
                           aria-label={`Duplicate line ${rowIndex + 1}`}
                         >
@@ -257,7 +257,7 @@ export default function IntakeGrid({
                             type="button"
                             onClick={() => onRemove(line)}
                             disabled={disabled}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                            className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-40"
                             title={removeTitle}
                             aria-label={`${removeTitle} (line ${rowIndex + 1})`}
                           >
@@ -268,20 +268,20 @@ export default function IntakeGrid({
                     ) : null}
                   </div>
                   {columnsToFix.length ? (
-                    <p className="mt-1.5 text-[11px] leading-4 text-red-600" title={columnsToFix.join(", ")}>
+                    <p className="mt-1.5 text-[11px] leading-4 text-red-600 dark:text-red-400" title={columnsToFix.join(", ")}>
                       To fix: {columnsToFix.join(", ")}
                     </p>
                   ) : null}
                   {rowMessage ? (
                     <p
-                      className={`mt-1.5 text-[11px] leading-4 ${line.errors?._row ? "text-red-600" : "text-amber-700"}`}
+                      className={`mt-1.5 text-[11px] leading-4 ${line.errors?._row ? "text-red-600 dark:text-red-400" : "text-amber-700 dark:text-amber-300"}`}
                       title={rowMessage}
                     >
                       {rowMessage}
                     </p>
                   ) : null}
                   {line.review_comment ? (
-                    <p className="mt-1.5 text-[11px] leading-4 text-slate-500" title={line.review_comment}>
+                    <p className="mt-1.5 text-[11px] leading-4 text-slate-500 dark:text-slate-400" title={line.review_comment}>
                       “{line.review_comment}”
                     </p>
                   ) : null}
@@ -300,8 +300,8 @@ export default function IntakeGrid({
                       data-row={rowIndex}
                       data-col={colIndex}
                       title={changed ? `In the database: ${cellText(databaseValue) || "empty"}` : undefined}
-                      className={`border-b border-slate-100 px-1.5 py-1.5 ${
-                        changed ? "bg-blue-50 shadow-[inset_3px_0_0_#3b82f6]" : "group-hover:bg-slate-50/50"
+                      className={`border-b border-slate-100 dark:border-slate-800 px-1.5 py-1.5 ${
+                        changed ? "bg-blue-50 dark:bg-blue-500/10 shadow-[inset_3px_0_0_var(--color-blue-500)]" : "group-hover:bg-slate-50/50 dark:group-hover:bg-slate-800/50"
                       }`}
                     >
                       {readOnly ? (
@@ -319,7 +319,7 @@ export default function IntakeGrid({
                         />
                       )}
                       {error ? (
-                        <p className="mt-1 max-w-[280px] text-[11px] leading-4 text-red-600" title={error}>
+                        <p className="mt-1 max-w-[280px] text-[11px] leading-4 text-red-600 dark:text-red-400" title={error}>
                           {error}
                         </p>
                       ) : null}
@@ -331,10 +331,10 @@ export default function IntakeGrid({
                   return (
                     <td
                       key={`info-${column.key}`}
-                      className="border-b border-l border-slate-100 bg-slate-50/60 px-2 py-2 text-sm text-slate-500"
+                      className="border-b border-l border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 px-2 py-2 text-sm text-slate-500 dark:text-slate-400"
                       title={column.type === "datetime" && record?.info?.[column.key] ? new Date(record.info[column.key]).toLocaleString() : undefined}
                     >
-                      <span className="whitespace-nowrap">{text || <span className="text-slate-300">—</span>}</span>
+                      <span className="whitespace-nowrap">{text || <span className="text-slate-300 dark:text-slate-600">—</span>}</span>
                     </td>
                   );
                 })}

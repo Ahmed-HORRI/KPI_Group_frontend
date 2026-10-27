@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { TargetIcon } from "../../components/icons.jsx";
 
 // Data source note: the original GET /corrective-actions-list queried
 // public."Responsible"/"Plant"/"Department" and public.corrective_actions --
@@ -29,10 +31,10 @@ function isOverdue(action) {
 }
 
 const STATUS_CLASSES = {
-  Open: "bg-blue-50 text-blue-700",
-  "Waiting for validation": "bg-amber-50 text-amber-700",
-  Completed: "bg-green-50 text-green-700",
-  Closed: "bg-slate-100 text-slate-500",
+  Open: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  "Waiting for validation": "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  Completed: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300",
+  Closed: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400",
 };
 
 function ActionCard({ action, responsibleId }) {
@@ -45,61 +47,61 @@ function ActionCard({ action, responsibleId }) {
     : "—";
 
   return (
-    <div className={`rounded-2xl border bg-white p-5 shadow-sm ${overdue ? "border-red-300" : "border-slate-200"}`}>
+    <div className={`rounded-2xl border bg-white dark:bg-slate-900 p-5 shadow-sm ${overdue ? "border-red-300 dark:border-red-500/50" : "border-slate-200 dark:border-slate-800"}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-bold text-slate-800">{kpi.subject || "KPI"}</div>
-          {kpi.indicator_sub_title && <div className="text-xs text-slate-400">{kpi.indicator_sub_title}</div>}
+          <div className="text-sm font-bold text-slate-800 dark:text-white">{kpi.subject || "KPI"}</div>
+          {kpi.indicator_sub_title && <div className="text-xs text-slate-400 dark:text-slate-500">{kpi.indicator_sub_title}</div>}
         </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_CLASSES[action.status] || "bg-slate-100 text-slate-600"}`}>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_CLASSES[action.status] || "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
           {action.status || "Open"}
         </span>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2.5">
-        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-          <div className="text-[10px] font-bold uppercase text-slate-400">Current</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{kpi.current_value ?? "—"} {kpi.unit || ""}</div>
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Current</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{kpi.current_value ?? "—"} {kpi.unit || ""}</div>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-          <div className="text-[10px] font-bold uppercase text-slate-400">Target</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{kpi.target ?? "—"} {kpi.unit || ""}</div>
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Target</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{kpi.target ?? "—"} {kpi.unit || ""}</div>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-          <div className="text-[10px] font-bold uppercase text-slate-400">Gap</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{gap} {kpi.unit || ""}</div>
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+          <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Gap</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{gap} {kpi.unit || ""}</div>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs sm:grid-cols-4">
         <div>
-          <span className="block text-slate-400">Week</span>
-          <strong className="text-slate-700">{action.week}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Week</span>
+          <strong className="text-slate-700 dark:text-slate-200">{action.week}</strong>
         </div>
         <div>
-          <span className="block text-slate-400">Responsible</span>
-          <strong className="text-slate-700">{action.responsible || "—"}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Responsible</span>
+          <strong className="text-slate-700 dark:text-slate-200">{action.responsible || "—"}</strong>
         </div>
         <div>
-          <span className="block text-slate-400">Due Date</span>
-          <strong className={overdue ? "text-red-600" : "text-slate-700"}>{formatDate(action.due_date)}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Due Date</span>
+          <strong className={overdue ? "text-red-600 dark:text-red-400" : "text-slate-700 dark:text-slate-200"}>{formatDate(action.due_date)}</strong>
         </div>
         <div>
-          <span className="block text-slate-400">Estimated Days</span>
-          <strong className="text-slate-700">{action.estimated_duration_days ?? "—"}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Estimated Days</span>
+          <strong className="text-slate-700 dark:text-slate-200">{action.estimated_duration_days ?? "—"}</strong>
         </div>
         <div>
-          <span className="block text-slate-400">Importance</span>
-          <strong className="text-slate-700">{action.importance || "—"}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Importance</span>
+          <strong className="text-slate-700 dark:text-slate-200">{action.importance || "—"}</strong>
         </div>
         <div>
-          <span className="block text-slate-400">Urgency</span>
-          <strong className="text-slate-700">{action.urgency || "—"}</strong>
+          <span className="block text-slate-400 dark:text-slate-500">Urgency</span>
+          <strong className="text-slate-700 dark:text-slate-200">{action.urgency || "—"}</strong>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3.5">
-        <span className={`text-xs font-semibold ${overdue ? "text-red-600" : "text-slate-400"}`}>
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3.5">
+        <span className={`text-xs font-semibold ${overdue ? "text-red-600 dark:text-red-400" : "text-slate-400 dark:text-slate-500"}`}>
           {action.due_date ? (overdue ? "⛔ Overdue" : "📅 Due date set") : "🕒 No due date"}
         </span>
         <Link
@@ -150,7 +152,7 @@ export default function CorrectiveActionsListPage() {
   if (!responsibleId) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id
         </div>
       </div>
@@ -159,18 +161,23 @@ export default function CorrectiveActionsListPage() {
 
   return (
     <div className="mx-auto max-w-[1200px] p-6">
-      <div className="mb-6 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-700 p-7 text-white shadow-lg">
-        <h1 className="text-3xl font-extrabold">Corrective Actions</h1>
-        <p className="mt-1.5 text-sm text-white/80">Open corrective actions assigned to this responsible.</p>
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-blue-950 to-blue-700 p-7 text-white shadow-lg">
+        <BoardTitle
+          inverse
+          icon={TargetIcon}
+          eyebrow="Action plan"
+          title="Corrective Actions"
+          subtitle="Open corrective actions assigned to this responsible."
+        />
       </div>
 
-      {loading && <div className="p-14 text-center text-slate-400">Loading corrective actions...</div>}
-      {!loading && error && <div className="p-14 text-center text-red-500">{error}</div>}
+      {loading && <div className="p-14 text-center text-slate-400 dark:text-slate-500">Loading corrective actions...</div>}
+      {!loading && error && <div className="p-14 text-center text-red-500 dark:text-red-400">{error}</div>}
 
       {!loading && !error && actions.length === 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-16 text-center">
-          <h3 className="text-lg font-bold text-slate-700">No corrective actions found</h3>
-          <p className="mt-1 text-sm text-slate-400">This responsible does not have corrective actions yet.</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-16 text-center">
+          <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">No corrective actions found</h3>
+          <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">This responsible does not have corrective actions yet.</p>
         </div>
       )}
 

@@ -14,8 +14,8 @@ export const buttonClasses = {
 };
 
 const ICON_TONES = {
-  brand: "bg-blue-50 text-[#0078D7] ring-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/10",
-  violet: "bg-violet-50 text-violet-600 ring-violet-100 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-500/10",
+  brand: "bg-blue-50 text-blue-600 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/10",
+  orange: "bg-orange-50 text-orange-700 ring-orange-100 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-orange-500/10",
   warning: "bg-amber-50 text-amber-600 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/10",
   danger: "bg-red-50 text-red-600 ring-red-100 dark:bg-red-500/15 dark:text-red-300 dark:ring-red-500/10",
   success: "bg-emerald-50 text-emerald-600 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/10",

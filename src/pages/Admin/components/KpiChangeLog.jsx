@@ -140,7 +140,7 @@ function ChangeDetails({ change }) {
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
-          className="self-start text-xs font-semibold text-[#0078D7] hover:underline dark:text-blue-400"
+          className="self-start text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
         >
           {expanded ? "Show less" : `+${hidden} more`}
         </button>

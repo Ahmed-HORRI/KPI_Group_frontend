@@ -13,6 +13,10 @@ import {
   Legend,
 } from "chart.js";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { ActivityIcon } from "../../components/icons.jsx";
+import { useChartColors } from "../../theme/chartColors.js";
+import { useTheme } from "../../theme/ThemeContext.jsx";
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -29,24 +33,44 @@ const STATUS_LABELS = {
 };
 
 const STATUS_BADGE_CLASSES = {
-  training_sent: "bg-blue-50 text-blue-700",
-  training_done: "bg-emerald-50 text-emerald-700",
-  test_sent: "bg-violet-50 text-violet-700",
-  test_overdue: "bg-amber-50 text-amber-700",
-  completed_pass: "bg-green-50 text-green-700",
-  completed_fail: "bg-red-50 text-red-700",
-  escalated: "bg-red-100 text-red-800",
+  training_sent: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  training_done: "bg-blue-100 dark:bg-blue-500/15 text-blue-900 dark:text-blue-200",
+  test_sent: "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  test_overdue: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  completed_pass: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300",
+  completed_fail: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300",
+  escalated: "bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300",
 };
 
 // One colour per status, so "Failed" stays red whichever other statuses are present.
+// Dark theme: stepped for the navy cards (each at least 3:1 against them);
+// "Escalated" turns lighter there, as the most contrasted red.
 const STATUS_COLORS = {
-  training_sent: "#3b82f6",
-  training_done: "#10b981",
-  test_sent: "#8b5cf6",
-  test_overdue: "#f59e0b",
-  completed_pass: "#34d399",
-  completed_fail: "#ef4444",
-  escalated: "#f87171",
+  light: {
+    training_sent: "#96c2e9",
+    training_done: "#076eaf",
+    test_sent: "#ef7904",
+    test_overdue: "#fab219",
+    completed_pass: "#0ca30c",
+    completed_fail: "#d03b3b",
+    escalated: "#8f1f1f",
+  },
+  dark: {
+    training_sent: "#96c2e9",
+    training_done: "#3487c7",
+    test_sent: "#d56b03",
+    test_overdue: "#fab219",
+    completed_pass: "#0ca30c",
+    completed_fail: "#e66767",
+    escalated: "#f8b4b4",
+  },
+};
+
+// Score buckets, low to high: one AVO-blue ramp, the best scores the most
+// contrasted against the card (darkest on white, lightest on navy).
+const SCORE_COLORS = {
+  light: ["#61a2d9", "#3487c7", "#076eaf", "#024d7d", "#11293e"],
+  dark: ["#076eaf", "#3487c7", "#61a2d9", "#96c2e9", "#dae9f8"],
 };
 
 // The API sends numeric columns as text ("43.75"): without this the average score adds strings.
@@ -60,9 +84,9 @@ function formatDate(iso) {
 function StatCard({ label, value, sub, accent }) {
   return (
     <div className={`rounded-2xl border p-5 ${accent}`}>
-      <div className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-2 text-3xl font-extrabold text-slate-800">{value}</div>
-      {sub && <div className="mt-1 text-xs text-slate-400">{sub}</div>}
+      <div className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="mt-2 text-3xl font-extrabold text-slate-800 dark:text-white">{value}</div>
+      {sub && <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">{sub}</div>}
     </div>
   );
 }
@@ -72,8 +96,8 @@ function ScoreCell({ row }) {
     const targetScore = row.pass_score || 80;
     return (
       <div className="w-32">
-        <div className="text-xs font-extrabold text-blue-600">{Number(targetScore)}%</div>
-        <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100">
+        <div className="text-xs font-extrabold text-blue-600 dark:text-blue-400">{Number(targetScore)}%</div>
+        <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800">
           <div className="h-1.5 rounded-full bg-green-400" style={{ width: `${targetScore}%` }} />
         </div>
       </div>
@@ -84,12 +108,12 @@ function ScoreCell({ row }) {
   return (
     <div className="w-32">
       <div className="flex items-center justify-between text-xs">
-        <span className={`font-extrabold ${row.passed ? "text-green-600" : "text-red-600"}`}>{pct.toFixed(1)}%</span>
-        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${row.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+        <span className={`font-extrabold ${row.passed ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>{pct.toFixed(1)}%</span>
+        <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${row.passed ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300"}`}>
           {row.passed ? "PASS" : "FAIL"}
         </span>
       </div>
-      <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100">
+      <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800">
         <div className={`h-1.5 rounded-full ${barClass}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -97,18 +121,21 @@ function ScoreCell({ row }) {
 }
 
 function DueDateCell({ row }) {
-  if (!row.test_due_date) return <span className="text-slate-300">—</span>;
+  if (!row.test_due_date) return <span className="text-slate-300 dark:text-slate-600">—</span>;
   const diff = Math.round((new Date(row.test_due_date) - new Date()) / (1000 * 3600 * 24));
   if (diff < 0) {
-    return <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-bold text-red-600">Overdue {Math.abs(diff)}d</span>;
+    return <span className="rounded-full bg-red-50 dark:bg-red-500/10 px-2 py-1 text-xs font-bold text-red-600 dark:text-red-400">Overdue {Math.abs(diff)}d</span>;
   }
   if (diff <= 3) {
-    return <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700">Due in {diff}d</span>;
+    return <span className="rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">Due in {diff}d</span>;
   }
-  return <span className="text-xs text-slate-500">{formatDate(row.test_due_date)}</span>;
+  return <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(row.test_due_date)}</span>;
 }
 
 export default function TrainingDashboardPage() {
+  const { darkMode } = useTheme();
+  const colors = useChartColors();
+  const statusColors = darkMode ? STATUS_COLORS.dark : STATUS_COLORS.light;
   const [searchParams] = useSearchParams();
   const [allRows, setAllRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -232,28 +259,32 @@ export default function TrainingDashboardPage() {
   const showingTo = Math.min(page * PAGE_SIZE, filteredRows.length);
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading training dashboard...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading training dashboard...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   return (
     <div className="mx-auto max-w-[1500px] p-6">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900">KPI Training Tracking Dashboard</h1>
-      </div>
+      <BoardTitle
+        className="mb-6"
+        icon={ActivityIcon}
+        eyebrow="KPI training"
+        title="KPI Training Tracking Dashboard"
+        subtitle="Follow every KPI training, test result and escalation across the group."
+      />
 
       <div className="mb-6 flex flex-wrap gap-3">
         <input
-          className="min-w-[260px] flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm outline-none focus:border-blue-400"
+          className="min-w-[260px] flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm shadow-sm outline-none focus:border-blue-400"
           placeholder="Search responsible, KPI, training…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm shadow-sm"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -263,7 +294,7 @@ export default function TrainingDashboardPage() {
           ))}
         </select>
         <select
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm shadow-sm"
           value={passFilter}
           onChange={(e) => setPassFilter(e.target.value)}
         >
@@ -273,7 +304,7 @@ export default function TrainingDashboardPage() {
           <option value="pending">Not Tested</option>
         </select>
         <select
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm shadow-sm"
           value={escFilter}
           onChange={(e) => setEscFilter(e.target.value)}
         >
@@ -285,16 +316,16 @@ export default function TrainingDashboardPage() {
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="Total Assigned" value={stats.total} sub="training records" accent="border-blue-100 bg-blue-50/40" />
-        <StatCard label="Pass Rate" value={stats.passRate} sub={stats.passRateSub} accent="border-green-100 bg-green-50/40" />
-        <StatCard label="Avg Score" value={stats.avgScore} sub="on completed tests" accent="border-amber-100 bg-amber-50/40" />
-        <StatCard label="Overdue / Escalated" value={stats.overdue} sub="need attention" accent="border-red-100 bg-red-50/40" />
-        <StatCard label="Pending Training" value={stats.pending} sub="not yet completed" accent="border-violet-100 bg-violet-50/40" />
+        <StatCard label="Total Assigned" value={stats.total} sub="training records" accent="border-blue-100 dark:border-blue-500/30 bg-blue-50/40 dark:bg-blue-500/10" />
+        <StatCard label="Pass Rate" value={stats.passRate} sub={stats.passRateSub} accent="border-green-100 dark:border-green-500/30 bg-green-50/40 dark:bg-green-500/10" />
+        <StatCard label="Avg Score" value={stats.avgScore} sub="on completed tests" accent="border-amber-100 dark:border-amber-500/30 bg-amber-50/40 dark:bg-amber-500/10" />
+        <StatCard label="Overdue / Escalated" value={stats.overdue} sub="need attention" accent="border-red-100 dark:border-red-500/30 bg-red-50/40 dark:bg-red-500/10" />
+        <StatCard label="Pending Training" value={stats.pending} sub="not yet completed" accent="border-orange-100 dark:border-orange-500/30 bg-orange-50/40 dark:bg-orange-500/10" />
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-sm font-bold text-slate-700">Status Distribution</div>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Status Distribution</div>
           <div className="h-56">
             <Doughnut
               data={{
@@ -302,30 +333,30 @@ export default function TrainingDashboardPage() {
                 datasets: [
                   {
                     data: chartData.statuses.map((s) => chartData.statusCounts[s]),
-                    backgroundColor: chartData.statuses.map((s) => STATUS_COLORS[s] || "#94a3b8"),
+                    backgroundColor: chartData.statuses.map((s) => statusColors[s] || colors.missing),
                     borderWidth: 2,
-                    borderColor: "#fff",
+                    borderColor: colors.surface,
                   },
                 ],
               }}
-              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } } } }}
+              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 }, color: colors.legend } } } }}
             />
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-sm font-bold text-slate-700">Score Distribution</div>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Score Distribution</div>
           <div className="h-56">
             <Bar
               data={{
                 labels: Object.keys(chartData.scoreBuckets),
-                datasets: [{ label: "# of Tests", data: Object.values(chartData.scoreBuckets), backgroundColor: ["#ef4444", "#f59e0b", "#fbbf24", "#10b981", "#34d399"], borderRadius: 6 }],
+                datasets: [{ label: "# of Tests", data: Object.values(chartData.scoreBuckets), backgroundColor: darkMode ? SCORE_COLORS.dark : SCORE_COLORS.light, borderRadius: 6 }],
               }}
-              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }}
+              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: colors.text }, grid: { color: colors.grid } }, y: { beginAtZero: true, ticks: { stepSize: 1, color: colors.text }, grid: { color: colors.grid } } } }}
             />
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-3 text-sm font-bold text-slate-700">Completion Over Time</div>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Completion Over Time</div>
           <div className="h-56">
             <Line
               data={{
@@ -334,8 +365,8 @@ export default function TrainingDashboardPage() {
                   {
                     label: "Completions",
                     data: chartData.monthCounts.length ? chartData.monthCounts : [0],
-                    borderColor: "#3b82f6",
-                    backgroundColor: "rgba(37,99,235,.10)",
+                    borderColor: colors.target,
+                    backgroundColor: darkMode ? "rgba(52,135,199,.16)" : "rgba(7,110,175,.10)",
                     borderWidth: 2.5,
                     pointRadius: 4,
                     tension: 0.35,
@@ -343,24 +374,24 @@ export default function TrainingDashboardPage() {
                   },
                 ],
               }}
-              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }}
+              options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: colors.text }, grid: { color: colors.grid } }, y: { beginAtZero: true, ticks: { stepSize: 1, color: colors.text }, grid: { color: colors.grid } } } }}
             />
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h3 className="text-lg font-bold text-slate-800">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 py-4">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white">
             Training Records {filteredRows.length ? `(${filteredRows.length})` : ""}
           </h3>
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-slate-400 dark:text-slate-500">
             Showing {filteredRows.length ? `${showingFrom}–${showingTo} of ${filteredRows.length}` : "0"}
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3">Responsible</th>
                 <th className="px-4 py-3">KPI Subject</th>
@@ -375,7 +406,7 @@ export default function TrainingDashboardPage() {
             <tbody>
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-14 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-14 text-center text-slate-400 dark:text-slate-500">
                     🔍 No records match your filters.
                   </td>
                 </tr>
@@ -388,39 +419,39 @@ export default function TrainingDashboardPage() {
                   .join("")
                   .toUpperCase();
                 return (
-                  <tr key={row.result_id} className="border-t border-slate-100 hover:bg-slate-50">
+                  <tr key={row.result_id} className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-500/15 text-xs font-bold text-blue-700 dark:text-blue-300">
                           {initials}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-800">{row.people_name || "—"}</div>
-                          <div className="text-xs text-slate-400">{row.role_name || ""}</div>
+                          <div className="font-semibold text-slate-800 dark:text-white">{row.people_name || "—"}</div>
+                          <div className="text-xs text-slate-400 dark:text-slate-500">{row.role_name || ""}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-slate-700">{row.kpi_name || ""}</div>
+                      <div className="text-slate-700 dark:text-slate-200">{row.kpi_name || ""}</div>
                       {row.kpi_target_allocation_id && (
-                        <div className="text-xs text-slate-400">Allocation #{row.kpi_target_allocation_id}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">Allocation #{row.kpi_target_allocation_id}</div>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-slate-700">{row.training_name || ""}</div>
-                      {row.training_id && <div className="text-xs text-slate-400">ID #{row.training_id}</div>}
+                      <div className="text-slate-700 dark:text-slate-200">{row.training_name || ""}</div>
+                      {row.training_id && <div className="text-xs text-slate-400 dark:text-slate-500">ID #{row.training_id}</div>}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_BADGE_CLASSES[row.status] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_BADGE_CLASSES[row.status] || "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
                         {STATUS_LABELS[row.status] || row.status}
                       </span>
                     </td>
                     <td className="px-4 py-3"><ScoreCell row={row} /></td>
                     <td className="px-4 py-3"><DueDateCell row={row} /></td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">L{row.escalation_level}</span>
+                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-bold text-slate-600 dark:text-slate-300">L{row.escalation_level}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
+                    <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
                       {row.test_completed_at
                         ? formatDate(row.test_completed_at)
                         : row.training_completed_at
@@ -434,11 +465,11 @@ export default function TrainingDashboardPage() {
           </table>
         </div>
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 border-t border-slate-100 px-5 py-4">
+          <div className="flex items-center justify-center gap-2 border-t border-slate-100 dark:border-slate-800 px-5 py-4">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
-                className={`h-8 w-8 rounded-lg text-xs font-bold ${p === page ? "bg-[#0078D7] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                className={`h-8 w-8 rounded-lg text-xs font-bold ${p === page ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
                 onClick={() => setPage(p)}
               >
                 {p}

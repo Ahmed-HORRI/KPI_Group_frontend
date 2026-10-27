@@ -178,11 +178,11 @@ export default function SelectMenu({
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         aria-label={hideLabel ? `${label}: ${selected?.label ?? ""}` : undefined}
-        className={`relative flex h-11 min-w-0 items-center gap-2.5 rounded-xl pl-3.5 pr-9 text-left shadow-sm ring-1 transition hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:ring-slate-200 dark:shadow-none dark:hover:ring-slate-600 dark:focus-visible:ring-blue-500/60 ${
+        className={`relative flex h-11 min-w-0 items-center gap-2.5 rounded-xl pl-3.5 pr-9 text-left shadow-sm ring-1 transition hover:ring-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/50 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:ring-slate-200 dark:disabled:hover:ring-slate-700 dark:shadow-none dark:hover:ring-slate-600 dark:focus-visible:ring-blue-500/60 ${
           active ? "bg-blue-50/70 dark:bg-blue-500/10" : "bg-white dark:bg-slate-800"
         } ${
           open
-            ? "ring-2 ring-[#0078D7]/40 dark:ring-blue-500/50"
+            ? "ring-2 ring-blue-600/40 dark:ring-blue-500/50"
             : active
               ? "ring-blue-200 dark:ring-blue-500/40"
               : "ring-slate-200 dark:ring-slate-700"
@@ -191,12 +191,12 @@ export default function SelectMenu({
         {Icon ? (
           <Icon
             size={16}
-            className={`shrink-0 ${active ? "text-[#0078D7] dark:text-blue-400" : "text-slate-400 dark:text-slate-500"}`}
+            className={`shrink-0 ${active ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"}`}
           />
         ) : null}
         {hideLabel ? null : (
           <span
-            className={`shrink-0 text-xs font-medium ${active ? "text-[#0078D7] dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}
+            className={`shrink-0 text-xs font-medium ${active ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}
           >
             {label}
           </span>
@@ -254,7 +254,7 @@ export default function SelectMenu({
                       aria-controls={listId}
                       aria-activedescendant={activeDescendant}
                       aria-autocomplete="list"
-                      className="h-9 w-full rounded-lg bg-slate-50 pl-8 pr-3 text-sm text-slate-800 outline-none ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-[#0078D7]/40 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/50"
+                      className="h-9 w-full rounded-lg bg-slate-50 pl-8 pr-3 text-sm text-slate-800 outline-none ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-600/40 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700 dark:placeholder:text-slate-500 dark:focus:ring-blue-500/50"
                     />
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export default function SelectMenu({
                             isActive ? "bg-slate-100 dark:bg-slate-800" : ""
                           } ${
                             isSelected
-                              ? "font-semibold text-[#0078D7] dark:text-blue-400"
+                              ? "font-semibold text-blue-600 dark:text-blue-400"
                               : "text-slate-700 dark:text-slate-200"
                           }`}
                         >
@@ -309,7 +309,7 @@ export default function SelectMenu({
                             <span
                               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                                 isSelected
-                                  ? "bg-blue-50 text-[#0078D7] dark:bg-blue-500/15 dark:text-blue-300"
+                                  ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
                                   : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
                               }`}
                             >

@@ -1,11 +1,13 @@
+// Brand colors only (AVO blue, GROUP orange, Carbon gray), each dark enough
+// for white initials.
 const AVATAR_TONES = [
-  "bg-[#0078D7] text-white",
-  "bg-violet-600 text-white",
-  "bg-emerald-600 text-white",
-  "bg-amber-500 text-white",
-  "bg-rose-500 text-white",
-  "bg-cyan-600 text-white",
-  "bg-indigo-600 text-white",
+  "bg-blue-600 text-white",
+  "bg-orange-700 text-white",
+  "bg-slate-600 text-white",
+  "bg-blue-800 text-white",
+  "bg-blue-950 text-white",
+  "bg-orange-800 text-white",
+  "bg-blue-700 text-white",
 ];
 
 const SIZES = {

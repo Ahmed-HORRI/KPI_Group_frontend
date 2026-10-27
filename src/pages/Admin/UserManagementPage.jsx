@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import apiClient, { getApiErrorMessage } from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
 import { useAuth } from "../../auth/AuthContext";
 import Avatar from "../../components/Avatar.jsx";
 import DropdownMenu from "../../components/DropdownMenu.jsx";
@@ -85,7 +86,7 @@ function RowActions({ user, isSelf, onAction }) {
           {...props}
           className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-100 dark:focus-visible:ring-blue-500/20 ${
             open
-              ? "border-blue-200 bg-blue-50 text-[#0078D7] dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300"
+              ? "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-300"
               : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
           }`}
         >
@@ -98,7 +99,7 @@ function RowActions({ user, isSelf, onAction }) {
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-bold text-slate-900 dark:text-white">
               {user.full_name}
-              {isSelf ? <span className="ml-1.5 text-xs font-bold text-[#0078D7] dark:text-blue-300">(you)</span> : null}
+              {isSelf ? <span className="ml-1.5 text-xs font-bold text-blue-600 dark:text-blue-300">(you)</span> : null}
             </div>
             <div className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
             <div className="mt-1.5">
@@ -344,13 +345,12 @@ export default function UserManagementPage() {
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#0078D7] dark:text-blue-400">Administration</div>
-          <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">Users and access</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Create accounts, manage roles and access, and review sign-in activity.
-          </p>
-        </div>
+        <BoardTitle
+          icon={ShieldIcon}
+          eyebrow="Administration"
+          title="Users and access"
+          subtitle="Create accounts, manage roles and access, and review sign-in activity."
+        />
         <button type="button" className={primaryButtonClass} onClick={() => setFormUser(null)}>
           <UserPlusIcon size={18} /> New account
         </button>
@@ -361,7 +361,7 @@ export default function UserManagementPage() {
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
         <StatTile label="Accounts" value={stats.total} />
         <StatTile label="Active" value={stats.active} tone="green" />
-        <StatTile label="Administrators" value={stats.admins} tone="violet" />
+        <StatTile label="Administrators" value={stats.admins} tone="orange" />
         <StatTile label="Invitations pending" value={stats.invited} tone="blue" />
         <StatTile label="Locked or disabled" value={stats.attention} tone={stats.attention ? "red" : "muted"} />
       </div>
@@ -463,7 +463,7 @@ export default function UserManagementPage() {
                             <div className="min-w-0">
                               <div className="font-semibold text-slate-800 dark:text-white">
                                 {user.full_name}
-                                {isSelf ? <span className="ml-2 text-xs font-bold text-[#0078D7] dark:text-blue-300">(you)</span> : null}
+                                {isSelf ? <span className="ml-2 text-xs font-bold text-blue-600 dark:text-blue-300">(you)</span> : null}
                               </div>
                               <div className="text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
                             </div>

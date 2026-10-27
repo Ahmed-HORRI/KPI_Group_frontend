@@ -20,9 +20,10 @@ export const TONE_DOT = {
   blue: "bg-blue-500",
   red: "bg-red-500",
   slate: "bg-slate-400",
-  violet: "bg-violet-500",
-  indigo: "bg-indigo-500",
-  cyan: "bg-cyan-500",
+  orange: "bg-orange-500",
+  navy: "bg-blue-900",
+  sky: "bg-blue-300 dark:bg-blue-500/30",
+  brand: "bg-blue-600",
 };
 
 const EVENT_LABELS = {
@@ -62,7 +63,7 @@ export const getEventLabel = (eventType) => EVENT_LABELS[eventType] || eventType
 export const getEventTone = (eventType) => {
   if (["login.failure", "login.blocked", "account.locked", "password.change_failed"].includes(eventType)) return "red";
   if (eventType === "user.deleted") return "red";
-  if (eventType.startsWith("user.") || eventType === "admin.bootstrap") return "violet";
+  if (eventType.startsWith("user.") || eventType === "admin.bootstrap") return "orange";
   if (eventType === "login.success") return "green";
   return "slate";
 };

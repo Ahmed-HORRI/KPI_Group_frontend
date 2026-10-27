@@ -11,25 +11,11 @@ import {
   Legend,
 } from "chart.js";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { FactoryIcon } from "../../components/icons.jsx";
+import { useChartColors } from "../../theme/chartColors.js";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
-
-const DEPARTMENT_COLORS = {
-  Sales: "#667eea",
-  Production: "#4facfe",
-  Quality: "#43e97b",
-  VOH: "#909d6f",
-  Engineering: "#36a07b",
-  "Human resources": "#78d69a",
-  Stocks: "#6a772a",
-  "AR/AP": "#96ce25",
-  Cash: "#54591b",
-};
-
-function getDepartmentColor(name = "") {
-  const match = Object.keys(DEPARTMENT_COLORS).find((key) => name.includes(key));
-  return match ? DEPARTMENT_COLORS[match] : "#6c757d";
-}
 
 // Simplified, presentational-only status check (color of the trend points/badge):
 // good when the value sits within [low_limit, high_limit] where each side is defined.
@@ -41,6 +27,7 @@ function isValueGood(value, lowLimit, highLimit) {
 }
 
 function KpiCard({ kpi }) {
+  const colors = useChartColors();
   const weeklyData = kpi.weeklyData || { weeks: [], values: [] };
   const weeks = (weeklyData.weeks || []).slice(0, 12);
   const values = (weeklyData.values || []).slice(0, 12);
@@ -52,7 +39,7 @@ function KpiCard({ kpi }) {
 
   if (!values.length) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-400">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-sm text-slate-400 dark:text-slate-500">
         No data for {kpi.subtitle || kpi.title}
       </div>
     );
@@ -60,17 +47,17 @@ function KpiCard({ kpi }) {
 
   const pointColors = values.map((v) => {
     const g = isValueGood(v, lowLimit, highLimit);
-    return g === false ? "#dc2626" : "#22c55e";
+    return g === false ? colors.critical : colors.good;
   });
 
   const datasets = [
     {
       label: (kpi.subtitle || kpi.title || "").slice(0, 40),
       data: values,
-      borderColor: "#94a3b8",
+      borderColor: colors.value,
       borderWidth: 2,
       pointBackgroundColor: pointColors,
-      pointBorderColor: "#ffffff",
+      pointBorderColor: colors.surface,
       pointBorderWidth: 2,
       pointRadius: 5,
       tension: 0,
@@ -80,7 +67,7 @@ function KpiCard({ kpi }) {
     datasets.push({
       label: `High Limit (${highLimit})`,
       data: values.map(() => highLimit),
-      borderColor: "#f97316",
+      borderColor: colors.limit,
       borderWidth: 1.5,
       borderDash: [6, 4],
       pointRadius: 0,
@@ -90,7 +77,7 @@ function KpiCard({ kpi }) {
     datasets.push({
       label: `Target (${target})`,
       data: values.map(() => target),
-      borderColor: "#16a34a",
+      borderColor: colors.target,
       borderWidth: 2,
       pointRadius: 0,
     });
@@ -99,7 +86,7 @@ function KpiCard({ kpi }) {
     datasets.push({
       label: `Low Limit (${lowLimit})`,
       data: values.map(() => lowLimit),
-      borderColor: "#dc2626",
+      borderColor: colors.limit,
       borderWidth: 1.5,
       borderDash: [6, 4],
       pointRadius: 0,
@@ -107,21 +94,21 @@ function KpiCard({ kpi }) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
       <div className="mb-1 flex items-start justify-between gap-2">
         <div>
-          <div className="text-sm font-bold text-slate-800">{kpi.subtitle || kpi.title}</div>
-          <div className="text-xs text-slate-400">{kpi.title}</div>
+          <div className="text-sm font-bold text-slate-800 dark:text-white">{kpi.subtitle || kpi.title}</div>
+          <div className="text-xs text-slate-400 dark:text-slate-500">{kpi.title}</div>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
-            good === false ? "bg-red-50 text-red-600" : good === true ? "bg-green-50 text-green-600" : "bg-slate-100 text-slate-500"
+            good === false ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400" : good === true ? "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           }`}
         >
           {currentValue} {kpi.unit || ""}
         </span>
       </div>
-      <div className="mb-2 text-xs text-slate-400">
+      <div className="mb-2 text-xs text-slate-400 dark:text-slate-500">
         Responsible: {kpi.responsible || "N/A"} · Updated {kpi.lastUpdated ? new Date(kpi.lastUpdated).toLocaleDateString() : "N/A"}
       </div>
       <div className="h-40">
@@ -131,12 +118,12 @@ function KpiCard({ kpi }) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: "rgba(148,163,184,0.15)" } } },
+            scales: { x: { grid: { display: false }, ticks: { color: colors.text } }, y: { grid: { color: colors.grid }, ticks: { color: colors.text } } },
           }}
         />
       </div>
       {kpi.correctiveAction && (
-        <div className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+        <div className="mt-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
           Corrective action: {kpi.correctiveAction.status || "Open"}
         </div>
       )}
@@ -173,11 +160,11 @@ export default function CeoReportPlantPage() {
   }, [plantId, week]);
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading report...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading report...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   if (!report) return null;
@@ -187,48 +174,54 @@ export default function CeoReportPlantPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] p-6">
-      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-extrabold text-slate-800">CEO KPI Group DASHBOARD</h1>
-        <div className="mt-2 text-sm text-slate-500">
-          <strong className="text-slate-700">{plant.plant_name}</strong> · Week{" "}
-          <strong className="text-slate-700">{reportWeek.replace("2026-Week", "W")}</strong> · Manager{" "}
-          <strong className="text-slate-700">{plant.manager || "N/A"}</strong>
-          {deliveryRecipient && (
+      <div className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm">
+        <BoardTitle
+          icon={FactoryIcon}
+          eyebrow="Plant KPI report"
+          title="CEO KPI Group DASHBOARD"
+          subtitle={
             <>
-              {" "}
-              · Recipient <strong className="text-slate-700">{deliveryRecipient}</strong>
+              <strong className="text-slate-700 dark:text-slate-200">{plant.plant_name}</strong> · Week{" "}
+              <strong className="text-slate-700 dark:text-slate-200">{reportWeek.replace("2026-Week", "W")}</strong> · Manager{" "}
+              <strong className="text-slate-700 dark:text-slate-200">{plant.manager || "N/A"}</strong>
+              {deliveryRecipient && (
+                <>
+                  {" "}
+                  · Recipient <strong className="text-slate-700 dark:text-slate-200">{deliveryRecipient}</strong>
+                </>
+              )}
             </>
-          )}
-        </div>
-        <div className="mt-6 grid grid-cols-3 gap-4 rounded-xl bg-slate-50 p-5">
+          }
+        />
+        <div className="mt-6 grid grid-cols-3 gap-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-5">
           <div className="text-center">
-            <div className="text-3xl font-extrabold text-blue-600">{stats.totalDepartments}</div>
-            <div className="text-xs text-slate-500">Departments</div>
+            <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">{stats.totalDepartments}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Departments</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-extrabold text-green-600">{stats.totalKPIs}</div>
-            <div className="text-xs text-slate-500">Total KPIs</div>
+            <div className="text-3xl font-extrabold text-slate-700 dark:text-slate-200">{stats.totalKPIs}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Total KPIs</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-extrabold text-violet-600">{reportWeek.replace("2026-Week", "W")}</div>
-            <div className="text-xs text-slate-500">Current Week</div>
+            <div className="text-3xl font-extrabold text-orange-700 dark:text-orange-300">{reportWeek.replace("2026-Week", "W")}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Current Week</div>
           </div>
         </div>
       </div>
 
       {departments.length === 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-16 text-center text-slate-400">No KPI data available</div>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-16 text-center text-slate-400 dark:text-slate-500">No KPI data available</div>
       )}
 
       {departments.map((department) => {
         const kpis = kpisByDepartment[department];
         if (!kpis.length) return null;
-        const color = getDepartmentColor(department);
         return (
-          <div key={department} className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center gap-3 border-b-4 pb-3" style={{ borderColor: color }}>
-              <span className="text-lg font-bold uppercase text-slate-800">{department}</span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">{kpis.length} KPIs</span>
+          <div key={department} className="mb-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+            {/* One AVO blue rule for every department: the name identifies it. */}
+            <div className="mb-4 flex items-center gap-3 border-b-4 border-blue-600 pb-3">
+              <span className="text-lg font-bold uppercase text-slate-800 dark:text-white">{department}</span>
+              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs text-slate-500 dark:text-slate-400">{kpis.length} KPIs</span>
             </div>
             <div className="grid grid-cols-2 gap-5">
               {kpis.map((kpi) => (

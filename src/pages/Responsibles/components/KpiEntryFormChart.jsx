@@ -9,6 +9,7 @@ import {
   PointElement,
   Tooltip,
 } from "chart.js";
+import { useChartColors } from "../../../theme/chartColors.js";
 import { getKpiBounds, isOutOfTarget, toNumber } from "../kpiEntryFormUtils";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, LineElement, PointElement, Tooltip);
@@ -16,7 +17,7 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, LineElement, PointEleme
 // Mini trend chart for one KPI card. Same series the original page drew
 // (12 past periods + 3 future ones, built server-side by
 // buildKpiChartHistorySeries) and the same threshold lines
-// (upper limit amber, target green, lower limit red, all dashed).
+// (both limits GROUP orange, target AVO blue, all dashed: theme/chartColors.js).
 //
 // The bar for the current period follows what the user types, which is what
 // the original did through updateCurrentMonthBarFromInput(). The original
@@ -26,6 +27,7 @@ ChartJS.register(BarElement, CategoryScale, LinearScale, LineElement, PointEleme
 // dropped here rather than reproduced.
 export default function KpiEntryFormChart({ kpi, typedValue }) {
   const { labels, values, current_period_label: currentPeriodLabel } = kpi.chart || {};
+  const colors = useChartColors();
 
   const data = useMemo(() => {
     const chartLabels = labels || [];
@@ -38,10 +40,10 @@ export default function KpiEntryFormChart({ kpi, typedValue }) {
     }
 
     const barColors = liveValues.map((value) => {
-      if (value === null || value === undefined) return "#cbd5e1";
+      if (value === null || value === undefined) return colors.missing;
       return isOutOfTarget(value, kpi.low_limit, kpi.high_limit, kpi.good_direction)
-        ? "#e34b24"
-        : "#15803d";
+        ? colors.critical
+        : colors.good;
     });
 
     const datasets = [
@@ -56,9 +58,9 @@ export default function KpiEntryFormChart({ kpi, typedValue }) {
     ];
 
     const thresholds = [
-      { key: "high_limit", label: "Upper Limit", color: "#f59e0b" },
-      { key: "target", label: "Target", color: "#22c55e" },
-      { key: "low_limit", label: "Lower Limit", color: "#ef4444" },
+      { key: "high_limit", label: "Upper Limit", color: colors.limit },
+      { key: "target", label: "Target", color: colors.target },
+      { key: "low_limit", label: "Lower Limit", color: colors.limit },
     ];
     thresholds.forEach(({ key, label, color }) => {
       const value = toNumber(kpi[key]);
@@ -76,7 +78,7 @@ export default function KpiEntryFormChart({ kpi, typedValue }) {
     });
 
     return { labels: chartLabels, datasets };
-  }, [labels, values, currentPeriodLabel, typedValue, kpi]);
+  }, [labels, values, currentPeriodLabel, typedValue, kpi, colors]);
 
   const { lowerBound, upperBound } = getKpiBounds(kpi.low_limit, kpi.high_limit);
 
@@ -98,10 +100,10 @@ export default function KpiEntryFormChart({ kpi, typedValue }) {
             },
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 60 } },
+            x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 60, color: colors.text } },
             y: {
-              grid: { color: "rgba(148,163,184,0.15)" },
-              ticks: { font: { size: 10 } },
+              grid: { color: colors.grid },
+              ticks: { font: { size: 10 }, color: colors.text },
               suggestedMin: lowerBound !== null ? lowerBound : undefined,
               suggestedMax: upperBound !== null ? upperBound : undefined,
             },

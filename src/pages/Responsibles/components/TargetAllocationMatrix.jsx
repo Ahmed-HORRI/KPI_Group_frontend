@@ -65,7 +65,7 @@ export default function TargetAllocationMatrix({
 
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-indigo-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Target Allocation Matrix
@@ -87,8 +87,8 @@ export default function TargetAllocationMatrix({
       {!loading && !loadError ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
           <StatTile label="Total allocations" value={totalCount} />
-          <StatTile label="Subjects" value={allSubjectCount} tone="indigo" />
-          <StatTile label="Multisite" value={multisiteCount} tone="violet" />
+          <StatTile label="Subjects" value={allSubjectCount} tone="navy" />
+          <StatTile label="Multisite" value={multisiteCount} tone="orange" />
           <StatTile label="Other scopes" value={totalCount - multisiteCount} tone="blue" />
         </div>
       ) : null}
@@ -162,7 +162,7 @@ function AllocationGroup({ group, isExpanded, onToggle, onEdit, onDelete }) {
             className="flex w-full items-center gap-3 px-2 py-3 text-left hover:bg-slate-100/70 dark:hover:bg-slate-800/70"
           >
             <GroupToggle expanded={isExpanded} />
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-sm dark:bg-indigo-500/10">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-sm dark:bg-blue-500/10">
               📁
             </span>
             <span className="flex-1">

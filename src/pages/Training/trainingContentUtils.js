@@ -12,21 +12,22 @@ export const STATUS_LABELS = {
   escalated: "Escalated",
 };
 
-// Status chip colours (border, background, text) of the original kpi-training-center.html.
+// Status chip colours (border, background, text): stages in AVO blue / GROUP
+// orange, outcomes in the status colours (amber overdue, green passed, red failed).
 export const STATUS_BADGE_CLASSES = {
-  training_sent: "border-blue-200 bg-blue-50 text-blue-700",
-  training_done: "border-teal-200 bg-cyan-50 text-teal-700",
-  test_sent: "border-green-200 bg-green-50 text-green-700",
-  test_overdue: "border-orange-200 bg-orange-50 text-orange-700",
-  completed_pass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  completed_fail: "border-red-200 bg-red-50 text-red-700",
-  escalated: "border-orange-200 bg-orange-50 text-orange-700",
+  training_sent: "border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  training_done: "border-blue-300 dark:border-blue-500/50 bg-blue-100 dark:bg-blue-500/15 text-blue-900 dark:text-blue-200",
+  test_sent: "border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  test_overdue: "border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  completed_pass: "border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  completed_fail: "border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300",
+  escalated: "border-red-300 dark:border-red-500/50 bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300",
 };
 
 export const getStatusLabel = (status) => STATUS_LABELS[status] || status || "Assigned";
 
 export const getStatusBadgeClass = (status) =>
-  STATUS_BADGE_CLASSES[status] || "border-slate-200 bg-slate-50 text-slate-600";
+  STATUS_BADGE_CLASSES[status] || "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300";
 
 export const formatDate = (value) => {
   if (!value) return "Not scheduled";

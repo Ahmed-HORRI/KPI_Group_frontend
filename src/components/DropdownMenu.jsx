@@ -9,7 +9,7 @@ const ITEM_TONES = {
     row: "hover:bg-slate-50 focus:bg-slate-50 dark:hover:bg-slate-800/70 dark:focus:bg-slate-800/70",
   },
   brand: {
-    icon: "bg-blue-50 text-[#0078D7] group-hover:bg-white group-focus:bg-white dark:bg-blue-500/15 dark:text-blue-300 dark:group-hover:bg-blue-500/25 dark:group-focus:bg-blue-500/25",
+    icon: "bg-blue-50 text-blue-600 group-hover:bg-white group-focus:bg-white dark:bg-blue-500/15 dark:text-blue-300 dark:group-hover:bg-blue-500/25 dark:group-focus:bg-blue-500/25",
     label: "text-slate-800 dark:text-slate-100",
     row: "hover:bg-blue-50/60 focus:bg-blue-50/60 dark:hover:bg-blue-500/10 dark:focus:bg-blue-500/10",
   },

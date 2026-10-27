@@ -15,7 +15,7 @@ import {
 const backToSignIn = (
   <Link
     to="/login"
-    className="inline-flex items-center gap-1.5 font-semibold text-slate-600 transition hover:text-[#0078D7]"
+    className="inline-flex items-center gap-1.5 font-semibold text-slate-600 dark:text-slate-300 transition hover:text-blue-600 dark:hover:text-blue-400"
   >
     <ArrowLeftIcon size={16} /> Back to sign in
   </Link>
@@ -47,11 +47,11 @@ export default function ForgotPasswordPage() {
     return (
       <AuthCard icon={MailIcon} iconTone="success" title="Check your inbox">
         <AuthStatus>
-          <p className="text-[15px] leading-6 text-slate-600">
-            If an active account exists for <span className="font-bold text-slate-900">{sentTo}</span>, we have sent it a
+          <p className="text-[15px] leading-6 text-slate-600 dark:text-slate-300">
+            If an active account exists for <span className="font-bold text-slate-900 dark:text-white">{sentTo}</span>, we have sent it a
             link to choose a new password.
           </p>
-          <ul className="flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3.5 text-sm text-slate-600">
+          <ul className="flex flex-col gap-2 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 px-4 py-3.5 text-sm text-slate-600 dark:text-slate-300">
             <li>• The link is valid for 60 minutes and works once.</li>
             <li>• Nothing after a few minutes? Check your spam or junk folder.</li>
             <li>• Still nothing? Your administrator can send you a new link.</li>

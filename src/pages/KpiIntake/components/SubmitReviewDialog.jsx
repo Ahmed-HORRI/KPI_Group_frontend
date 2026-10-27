@@ -15,10 +15,10 @@ function ChangeList({ changes }) {
     <ul className="mt-1.5 space-y-0.5 text-xs">
       {changes.map((change) => (
         <li key={change.key} className="flex min-w-0 flex-wrap gap-x-1.5">
-          <span className="shrink-0 text-slate-400">{change.label}:</span>
-          <span className="text-slate-500 line-through decoration-slate-300">{change.from ?? "empty"}</span>
-          <span className="text-slate-400">→</span>
-          <span className="font-semibold text-slate-800">{change.to ?? "empty"}</span>
+          <span className="shrink-0 text-slate-400 dark:text-slate-500">{change.label}:</span>
+          <span className="text-slate-500 dark:text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">{change.from ?? "empty"}</span>
+          <span className="text-slate-400 dark:text-slate-500">→</span>
+          <span className="font-semibold text-slate-800 dark:text-white">{change.to ?? "empty"}</span>
         </li>
       ))}
     </ul>
@@ -28,11 +28,11 @@ function ChangeList({ changes }) {
 function LineReview({ line, noun, checked, onToggle, disabled }) {
   const errors = Object.entries(line.errors || {});
   return (
-    <li className="rounded-xl border border-slate-200 bg-white">
+    <li className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <div className="flex items-start gap-3 px-3.5 py-2.5">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 accent-[#0078D7]"
+          className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 dark:border-slate-600 accent-blue-600"
           checked={checked}
           onChange={onToggle}
           disabled={disabled}
@@ -42,40 +42,40 @@ function LineReview({ line, noun, checked, onToggle, disabled }) {
           <div className="flex flex-wrap items-center gap-2">
             <StatusChip status={line.status} />
             {line.record_id ? (
-              <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[11px] font-bold text-blue-700">
+              <span className="rounded-md bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
                 Change · {noun} #{line.record_id}
               </span>
             ) : (
-              <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700">New</span>
+              <span className="rounded-md bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">New</span>
             )}
-            <span className="truncate text-sm font-semibold text-slate-900">{line.label}</span>
-            <span className="text-xs text-slate-400">
+            <span className="truncate text-sm font-semibold text-slate-900 dark:text-white">{line.label}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">
               #{line.intake_id}
               {line.submitted_by_name ? ` · ${line.submitted_by_name.split(" — ")[0]}` : ""}
             </span>
           </div>
           {line.record_id && line.changes?.length ? <ChangeList changes={line.changes} /> : null}
-          {line.duplicate?.message ? <p className="mt-1 text-xs text-amber-700">{line.duplicate.message}</p> : null}
+          {line.duplicate?.message ? <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{line.duplicate.message}</p> : null}
           {errors.length ? (
-            <ul className="mt-1 space-y-0.5 text-xs text-red-600">
+            <ul className="mt-1 space-y-0.5 text-xs text-red-600 dark:text-red-400">
               {errors.map(([key, message]) => (
                 <li key={key}>{message}</li>
               ))}
             </ul>
           ) : null}
           <details className="mt-1.5 text-xs">
-            <summary className="cursor-pointer select-none font-semibold text-slate-500 hover:text-slate-700">
+            <summary className="cursor-pointer select-none font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
               {line.record_id ? "The whole row after the change" : "Values as understood"} ({line.resolved.length})
             </summary>
             <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
               {line.resolved.map((cell) => (
                 <div key={cell.key} className="flex min-w-0 gap-2">
-                  <dt className="shrink-0 text-slate-400">{cell.label}</dt>
-                  <dd className="min-w-0 truncate text-slate-700" title={String(cell.value)}>
+                  <dt className="shrink-0 text-slate-400 dark:text-slate-500">{cell.label}</dt>
+                  <dd className="min-w-0 truncate text-slate-700 dark:text-slate-200" title={String(cell.value)}>
                     {String(cell.value)}
-                    {cell.id ? <span className="ml-1 font-mono text-[11px] text-blue-600">id {cell.id}</span> : null}
+                    {cell.id ? <span className="ml-1 font-mono text-[11px] text-blue-600 dark:text-blue-400">id {cell.id}</span> : null}
                     {cell.intake_id ? (
-                      <span className="ml-1 font-mono text-[11px] text-violet-600">line #{cell.intake_id}</span>
+                      <span className="ml-1 font-mono text-[11px] text-orange-700 dark:text-orange-300">line #{cell.intake_id}</span>
                     ) : null}
                   </dd>
                 </div>
@@ -95,7 +95,7 @@ function SubmitResult({ result }) {
   const updated = result.updated || { kpi: [], target_allocation: [] };
   return (
     <div className="space-y-4 text-sm">
-      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-emerald-900">
+      <div className="flex items-start gap-3 rounded-2xl border border-emerald-100 dark:border-emerald-500/30 bg-emerald-50/70 dark:bg-emerald-500/10 px-4 py-3 text-emerald-900 dark:text-emerald-200">
         <CheckCircleIcon size={18} className="mt-0.5 shrink-0" />
         <p>
           Created: {count(created.kpi, "KPI")} and {count(created.target_allocation, "target allocation")}. Changed:{" "}
@@ -110,13 +110,13 @@ function SubmitResult({ result }) {
       ].map(([title, items, describe]) =>
         items.length ? (
           <div key={title}>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">{title}</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</h3>
             <ul className="mt-1.5 space-y-1">
               {items.map((item) => (
-                <li key={item.intake_id} className="rounded-lg bg-slate-50 px-3 py-1.5">
+                <li key={item.intake_id} className="rounded-lg bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5">
                   <div className="flex justify-between gap-3">
-                    <span className="truncate text-slate-800">{item.label}</span>
-                    <span className="shrink-0 font-mono text-xs text-blue-700">{describe(item)}</span>
+                    <span className="truncate text-slate-800 dark:text-white">{item.label}</span>
+                    <span className="shrink-0 font-mono text-xs text-blue-700 dark:text-blue-300">{describe(item)}</span>
                   </div>
                   {item.changes?.length ? <ChangeList changes={item.changes} /> : null}
                 </li>
@@ -127,8 +127,8 @@ function SubmitResult({ result }) {
       )}
       {skipped.length ? (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">Not submitted</h3>
-          <ul className="mt-1.5 space-y-1 text-amber-800">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Not submitted</h3>
+          <ul className="mt-1.5 space-y-1 text-amber-800 dark:text-amber-300">
             {skipped.map((item) => (
               <li key={item.intake_id}>
                 Line #{item.intake_id}: {item.reason}
@@ -288,7 +288,7 @@ export default function SubmitReviewDialog({ hasUnsavedLines, onClose, onChanged
       }
     >
       {error ? (
-        <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 text-sm text-red-800">
+        <div className="mb-4 flex items-start gap-2 rounded-2xl border border-red-100 dark:border-red-500/30 bg-red-50/70 dark:bg-red-500/10 px-4 py-3 text-sm text-red-800 dark:text-red-300">
           <AlertIcon size={18} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -297,26 +297,26 @@ export default function SubmitReviewDialog({ hasUnsavedLines, onClose, onChanged
       {result ? (
         <SubmitResult result={result} />
       ) : loading ? (
-        <div className="flex items-center gap-2 py-10 text-sm text-slate-500">
+        <div className="flex items-center gap-2 py-10 text-sm text-slate-500 dark:text-slate-400">
           <Spinner /> Checking every line…
         </div>
       ) : report ? (
         <div className="space-y-6">
           {hasUnsavedLines ? (
-            <div className="rounded-2xl border border-amber-100 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
+            <div className="rounded-2xl border border-amber-100 dark:border-amber-500/30 bg-amber-50/70 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
               This page has unsaved lines: they are not part of this review. Save them first to include them.
             </div>
           ) : null}
           {rejecting ? (
             <label className="block text-sm">
-              <span className="font-semibold text-slate-700">Comment for the responsibles (optional)</span>
+              <span className="font-semibold text-slate-700 dark:text-slate-200">Comment for the responsibles (optional)</span>
               <textarea
                 data-autofocus
                 value={comment}
                 maxLength={1000}
                 onChange={(event) => setComment(event.target.value)}
                 rows={3}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                 placeholder="Why these lines are rejected"
               />
             </label>
@@ -328,17 +328,17 @@ export default function SubmitReviewDialog({ hasUnsavedLines, onClose, onChanged
             return (
               <section key={entityType}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                     {title}{" "}
-                    <span className="font-medium text-slate-500">
+                    <span className="font-medium text-slate-500 dark:text-slate-400">
                       · {counts.ready} ready · {counts.duplicate} duplicate{counts.duplicate === 1 ? "" : "s"} · {counts.error} to fix
                     </span>
                   </h3>
                   {lines.length ? (
-                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 rounded border-slate-300 accent-[#0078D7]"
+                        className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 accent-blue-600"
                         checked={sectionChecked}
                         onChange={(event) => setSection(lines, event.target.checked)}
                         disabled={busy}
@@ -361,7 +361,7 @@ export default function SubmitReviewDialog({ hasUnsavedLines, onClose, onChanged
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-2 rounded-xl bg-slate-50 px-3.5 py-3 text-sm text-slate-500">No line waiting.</p>
+                  <p className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3.5 py-3 text-sm text-slate-500 dark:text-slate-400">No line waiting.</p>
                 )}
               </section>
             );

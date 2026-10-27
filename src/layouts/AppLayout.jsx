@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { getHomePath } from "../auth/RouteGuards";
 import Avatar from "../components/Avatar.jsx";
+import BrandLogo from "../components/BrandLogo.jsx";
 import DropdownMenu from "../components/DropdownMenu.jsx";
 import {
   ChevronDownIcon,
@@ -13,7 +14,7 @@ import {
   ShieldIcon,
   SunIcon,
 } from "../components/icons.jsx";
-import { ThemeProvider, useTheme } from "../theme/ThemeContext.jsx";
+import { useTheme } from "../theme/ThemeContext.jsx";
 import { getRoleMeta } from "../constants/userRoles";
 
 function UserMenu() {
@@ -56,7 +57,7 @@ function UserMenu() {
             <span
               className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 isAdmin
-                  ? "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300"
+                  ? "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300"
                   : "bg-slate-200/70 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
               }`}
             >
@@ -129,32 +130,31 @@ function UserMenu() {
 const navLinkClass = ({ isActive }) =>
   `rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
     isActive
-      ? "bg-blue-50 text-[#0078D7] dark:bg-blue-500/10 dark:text-blue-300"
+      ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"
       : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
   }`;
 
 // Layout of the pages that require a session: a slim top bar with the
-// signed-in user, above the page itself. They share one light / dark theme.
+// signed-in user, above the page itself.
 export default function AppLayout() {
-  return (
-    <ThemeProvider>
-      <AppShell />
-    </ThemeProvider>
-  );
-}
-
-function AppShell() {
   const { user, isAdmin } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      {/* Stays at the top while the page scrolls (h-14). z-30: under dialogs and dropdowns. */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Stays at the top while the page scrolls (h-14). z-30: under dialogs and dropdowns.
+          The brand bar sits inside those 56px, over the bottom edge, so the
+          sticky elements placed under the header (top-14) still line up. */}
+      <header className="sticky top-0 z-30 bg-white dark:bg-slate-950">
+        <span className="brand-bar pointer-events-none absolute inset-x-0 bottom-0 h-[3px]" aria-hidden="true" />
         <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <Link to={getHomePath(user)} className="flex items-center gap-2.5">
-              <img src="/favicon.ico" alt="" className="h-7 w-7" />
-              <span className="text-sm font-black tracking-tight text-slate-800 dark:text-white">KPI Manager</span>
+            <Link to={getHomePath(user)} className="flex items-center" aria-label="KPI Manager home">
+              <span className="sm:hidden">
+                <BrandLogo className="h-6" />
+              </span>
+              <span className="hidden sm:inline-flex">
+                <BrandLogo className="h-7" product />
+              </span>
             </Link>
             <nav className="ml-2 hidden items-center gap-1 sm:flex">
               {user?.people_id ? (

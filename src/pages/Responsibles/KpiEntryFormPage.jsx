@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { ClipboardIcon } from "../../components/icons.jsx";
 import KpiEntryFormCard from "./components/KpiEntryFormCard";
 import KpiEntryFormAssistant from "./components/KpiEntryFormAssistant";
 import { isCompleteCorrectiveAction, isOutOfTarget } from "./kpiEntryFormUtils";
@@ -243,7 +245,7 @@ export default function KpiEntryFormPage() {
   if (!responsibleId) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id
         </div>
       </div>
@@ -251,24 +253,24 @@ export default function KpiEntryFormPage() {
   }
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading KPI form...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading KPI form...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   if (result) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center p-6">
-        <div className="w-full rounded-3xl bg-white p-10 text-center shadow-xl">
-          <h1 className="text-2xl font-bold text-green-600">KPI Values Submitted</h1>
-          <p className="mt-1 text-sm text-slate-500">Period {result.week}</p>
+        <div className="w-full rounded-3xl bg-white dark:bg-slate-900 p-10 text-center shadow-xl">
+          <h1 className="text-2xl font-bold text-green-600 dark:text-green-400">KPI Values Submitted</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Period {result.week}</p>
           <ul className="mx-auto mt-5 flex max-w-sm flex-col gap-2 text-left">
             {(result.notifications || []).map((notification, index) => (
               <li
                 key={index}
-                className="rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700"
+                className="rounded-xl bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200"
               >
                 {notification}
               </li>
@@ -279,7 +281,7 @@ export default function KpiEntryFormPage() {
               <Link
                 to={result.form_url}
                 onClick={() => setResult(null)}
-                className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-600"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300"
               >
                 Back to the form
               </Link>
@@ -305,37 +307,37 @@ export default function KpiEntryFormPage() {
     <div className="mx-auto max-w-[1400px] p-6">
       {submitting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40">
-          <div className="rounded-2xl bg-white px-8 py-6 text-sm font-bold text-slate-700 shadow-2xl">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 px-8 py-6 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-2xl">
             Submitting KPI Values...
           </div>
         </div>
       )}
 
-      <div className="mb-6 rounded-2xl bg-[#0078D7] p-6 text-white shadow-lg">
-        <h1 className="text-2xl font-extrabold">KPI Submission — {period.label}</h1>
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-blue-800 to-blue-600 p-6 text-white shadow-lg">
+        <BoardTitle inverse icon={ClipboardIcon} eyebrow="KPI form" title={`KPI Submission — ${period.label}`} />
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Name</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{responsible.name || "—"}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Name</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{responsible.name || "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Group</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{responsible.group || "—"}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Group</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{responsible.group || "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Role</div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{responsible.role || "—"}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Role</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{responsible.role || "—"}</div>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             {period.title}
           </div>
           <select
             value={period.label}
             onChange={(event) => changePeriod(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-blue-400"
+            className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm font-bold text-slate-800 dark:text-white outline-none focus:border-blue-400"
           >
             {(period.options || []).map((option) => (
               <option key={option} value={option}>
@@ -345,17 +347,17 @@ export default function KpiEntryFormPage() {
           </select>
         </div>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Frequency
           </div>
-          <div className="mt-1 text-sm font-bold text-slate-800">{data?.frequency}</div>
+          <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{data?.frequency}</div>
         </div>
       </div>
 
       {kpis.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <h2 className="text-xl font-bold text-slate-800">No KPI values to enter yet</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center shadow-sm">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">No KPI values to enter yet</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">
             This form only shows KPI target allocations whose owner is this responsible. No target
             allocation is currently assigned to them for this period, frequency and scope.
           </p>
@@ -368,8 +370,8 @@ export default function KpiEntryFormPage() {
         </div>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#0078D7]/80 pb-2">
-            <h2 className="text-lg font-bold text-[#0078D7]">KPI Values ({kpis.length})</h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-blue-600/80 pb-2">
+            <h2 className="text-lg font-bold text-blue-600 dark:text-blue-400">KPI Values ({kpis.length})</h2>
             <button
               type="button"
               onClick={() => setHelpOpen((open) => !open)}
@@ -380,16 +382,16 @@ export default function KpiEntryFormPage() {
           </div>
 
           {helpOpen && (
-            <div className="mb-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-bold text-slate-700">Help Support</div>
-              <p className="mt-1 text-xs text-slate-500">
+            <div className="mb-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+              <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Help Support</div>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Describe the problem you are facing on this page — it is emailed to the KPI support
                 team with your name, group, role and period.
               </p>
               <textarea
                 value={helpFeedback}
                 onChange={(event) => setHelpFeedback(event.target.value)}
-                className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                className="mt-3 min-h-[90px] w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
               />
               <div className="mt-2 flex items-center gap-3">
                 <button
@@ -399,13 +401,13 @@ export default function KpiEntryFormPage() {
                 >
                   Send
                 </button>
-                {helpStatus && <span className="text-xs text-slate-500">{helpStatus}</span>}
+                {helpStatus && <span className="text-xs text-slate-500 dark:text-slate-400">{helpStatus}</span>}
               </div>
             </div>
           )}
 
           {submitError && (
-            <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-300">
               {submitError}
             </div>
           )}
@@ -438,9 +440,9 @@ export default function KpiEntryFormPage() {
             ))}
           </div>
 
-          <div className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+          <div className="sticky bottom-0 mt-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 shadow-lg backdrop-blur">
             {touched && blockingKpis.length > 0 && (
-              <div className="mb-3 rounded-xl bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-700">
+              <div className="mb-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
                 {blockingKpis.length} KPI{blockingKpis.length > 1 ? "s" : ""} still need a value or a
                 complete corrective action.
               </div>
@@ -465,16 +467,16 @@ export default function KpiEntryFormPage() {
 
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-6">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
-            <h3 className="text-lg font-bold text-slate-800">Confirm Submission</h3>
-            <p className="mt-2 text-sm text-slate-500">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 text-center shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Confirm Submission</h3>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Are you sure you want to submit your KPI values?
             </p>
             <div className="mt-5 flex justify-center gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-600"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300"
               >
                 Cancel
               </button>

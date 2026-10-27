@@ -155,7 +155,7 @@ export default function KpiMatrix({
       {!loading ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
           <StatTile label="Total KPIs" value={totalKpiCount} />
-          <StatTile label="Subjects" value={allSubjectCount} tone="indigo" />
+          <StatTile label="Subjects" value={allSubjectCount} tone="navy" />
           <StatTile label="My KPIs" value={ownedCount} tone="blue" />
           <StatTile label="Consult only" value={totalKpiCount - ownedCount} tone="muted" />
         </div>
@@ -308,7 +308,7 @@ function ExpandableGroup({
                     </span>
                     {row.status ? <StatusPill tone={toneForStatus(row.status)}>{row.status}</StatusPill> : null}
                     {owned ? (
-                      <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
                         Mine
                       </span>
                     ) : null}

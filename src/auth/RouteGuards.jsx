@@ -22,7 +22,7 @@ export function RequireAuth() {
   if (status === "error") {
     return (
       <FullPageMessage title="Unable to reach the server">
-        <button type="button" onClick={refresh} className="mt-3 font-bold text-[#0078D7] hover:underline">
+        <button type="button" onClick={refresh} className="mt-3 font-bold text-blue-600 dark:text-blue-400 hover:underline">
           Try again
         </button>
       </FullPageMessage>
@@ -44,7 +44,7 @@ export function RequireAdmin() {
     return (
       <FullPageMessage title="Administrator access required">
         This page is only available to administrators.{" "}
-        <Link to={getHomePath(user)} className="font-bold text-[#0078D7] hover:underline">
+        <Link to={getHomePath(user)} className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
           Back to my dashboard
         </Link>
       </FullPageMessage>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { TargetIcon } from "../../components/icons.jsx";
 
 const IMPORTANCE_OPTIONS = ["High", "Medium", "Low"];
 const URGENCY_OPTIONS = ["Flexible", "Urgent", "Secondary"];
@@ -12,10 +14,10 @@ function defaultDueDate() {
 }
 
 const STATUS_BADGE_CLASSES = {
-  Open: "bg-red-50 text-red-700 border-red-200",
-  "Waiting for validation": "bg-amber-50 text-amber-700 border-amber-200",
-  Completed: "bg-green-50 text-green-700 border-green-200",
-  Closed: "bg-green-50 text-green-700 border-green-200",
+  Open: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/30",
+  "Waiting for validation": "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30",
+  Completed: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-500/30",
+  Closed: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-500/30",
 };
 
 export default function CorrectiveActionFormPage() {
@@ -131,7 +133,7 @@ export default function CorrectiveActionFormPage() {
   if (!responsibleId || !kpiId || !week) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id, kpi_id, or week
         </div>
       </div>
@@ -139,11 +141,11 @@ export default function CorrectiveActionFormPage() {
   }
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading corrective action...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading corrective action...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   const actionTitle = existing?.corrective_action_id
@@ -153,10 +155,10 @@ export default function CorrectiveActionFormPage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-        <div className="bg-gradient-to-br from-red-700 to-red-500 p-8 text-white">
-          <h1 className="text-3xl font-extrabold">{actionTitle}</h1>
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/90">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+        <div className="bg-gradient-to-br from-blue-950 to-blue-700 p-8 text-white">
+          <BoardTitle inverse icon={TargetIcon} eyebrow="Corrective action" title={actionTitle} />
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/90">
             <span><strong>Week:</strong> {week}</span>
             <span><strong>Responsible:</strong> {responsible?.name || "—"}</span>
             <span><strong>Plant:</strong> {responsible?.plant_name || "—"}</span>
@@ -166,74 +168,74 @@ export default function CorrectiveActionFormPage() {
 
         <div className="p-8">
           <div className="mb-6 grid grid-cols-2 gap-3.5">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">KPI</span>
-              <strong className="text-sm text-slate-800">{kpi?.subject || "—"}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">KPI</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.subject || "—"}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">Subtitle</span>
-              <strong className="text-sm text-slate-800">{kpi?.indicator_sub_title || "—"}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Subtitle</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.indicator_sub_title || "—"}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">Current Value</span>
-              <strong className="text-sm text-slate-800">{kpi?.value ?? "—"} {kpi?.unit || ""}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Current Value</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.value ?? "—"} {kpi?.unit || ""}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">Target</span>
-              <strong className="text-sm text-slate-800">{kpi?.target ?? "—"} {kpi?.unit || ""}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Target</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.target ?? "—"} {kpi?.unit || ""}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">Low Limit</span>
-              <strong className="text-sm text-slate-800">{kpi?.low_limit ?? "—"} {kpi?.unit || ""}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Low Limit</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.low_limit ?? "—"} {kpi?.unit || ""}</strong>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400">High Limit</span>
-              <strong className="text-sm text-slate-800">{kpi?.high_limit ?? "—"} {kpi?.unit || ""}</strong>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-4 py-3">
+              <span className="block text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">High Limit</span>
+              <strong className="text-sm text-slate-800 dark:text-white">{kpi?.high_limit ?? "—"} {kpi?.unit || ""}</strong>
             </div>
           </div>
 
           <div className="mb-6">
-            <span className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-extrabold ${STATUS_BADGE_CLASSES[existing?.status] || "bg-red-50 text-red-700 border-red-200"}`}>
+            <span className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-extrabold ${STATUS_BADGE_CLASSES[existing?.status] || "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/30"}`}>
               Status: {existing?.status || "Open"}
             </span>
           </div>
 
-          <h2 className="mb-4 text-xl font-bold text-red-700">Action Details</h2>
+          <h2 className="mb-4 text-xl font-bold text-red-700 dark:text-red-300">Action Details</h2>
 
           {saveError && (
-            <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{saveError}</div>
+            <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-300">{saveError}</div>
           )}
 
           <form onSubmit={submit} className="flex flex-col gap-5">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <label className="flex flex-col gap-1.5 text-sm">
-                <span className="font-bold text-slate-700">📅 Due Date *</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">📅 Due Date *</span>
                 <input
                   type="date"
                   required
-                  className="rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   value={form.due_date}
                   onChange={(e) => updateField("due_date", e.target.value)}
                 />
               </label>
               <label className="flex flex-col gap-1.5 text-sm">
-                <span className="font-bold text-slate-700">👤 Responsible *</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">👤 Responsible *</span>
                 <input
                   type="text"
                   required
-                  className="rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   value={form.responsible}
                   onChange={(e) => updateField("responsible", e.target.value)}
                 />
               </label>
               <label className="flex flex-col gap-1.5 text-sm">
-                <span className="font-bold text-slate-700">Estimated Duration (Days) *</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">Estimated Duration (Days) *</span>
                 <input
                   type="number"
                   min="0"
                   step="1"
                   required
-                  className="rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   value={form.estimated_duration_days}
                   onChange={(e) => updateField("estimated_duration_days", e.target.value)}
                 />
@@ -242,10 +244,10 @@ export default function CorrectiveActionFormPage() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5 text-sm">
-                <span className="font-bold text-slate-700">Importance *</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">Importance *</span>
                 <select
                   required
-                  className="rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   value={form.importance}
                   onChange={(e) => updateField("importance", e.target.value)}
                 >
@@ -256,10 +258,10 @@ export default function CorrectiveActionFormPage() {
                 </select>
               </label>
               <label className="flex flex-col gap-1.5 text-sm">
-                <span className="font-bold text-slate-700">Urgency *</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">Urgency *</span>
                 <select
                   required
-                  className="rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  className="rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                   value={form.urgency}
                   onChange={(e) => updateField("urgency", e.target.value)}
                 >
@@ -272,20 +274,20 @@ export default function CorrectiveActionFormPage() {
             </div>
 
             <label className="flex flex-col gap-1.5 text-sm">
-              <span className="font-bold text-slate-700">🔍 Root Cause Analysis *</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">🔍 Root Cause Analysis *</span>
               <textarea
                 required
-                className="min-h-[120px] rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="min-h-[120px] rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                 value={form.root_cause}
                 onChange={(e) => updateField("root_cause", e.target.value)}
               />
             </label>
 
             <label className="flex flex-col gap-1.5 text-sm">
-              <span className="font-bold text-slate-700">🔧 Implemented Solution *</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">🔧 Implemented Solution *</span>
               <textarea
                 required
-                className="min-h-[120px] rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="min-h-[120px] rounded-xl border border-slate-300 dark:border-slate-600 px-3.5 py-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
                 value={form.implemented_solution}
                 onChange={(e) => updateField("implemented_solution", e.target.value)}
               />
@@ -301,13 +303,13 @@ export default function CorrectiveActionFormPage() {
               </button>
               <Link
                 to={`/corrective-action-form?responsible_id=${encodeURIComponent(responsibleId)}&kpi_id=${encodeURIComponent(kpiId)}&week=${encodeURIComponent(week)}&new_action=1`}
-                className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300"
               >
                 Add New Action
               </Link>
               <Link
                 to={`/corrective-actions-list?responsible_id=${encodeURIComponent(responsibleId)}`}
-                className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300"
               >
                 Back to Corrective Actions
               </Link>

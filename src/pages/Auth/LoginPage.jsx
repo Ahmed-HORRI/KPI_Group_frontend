@@ -69,7 +69,7 @@ export default function LoginPage() {
             <Link
               to="/forgot-password"
               state={{ email }}
-              className="text-sm font-semibold text-[#0078D7] hover:text-[#005a9e] hover:underline"
+              className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
             >
               Forgot your password?
             </Link>

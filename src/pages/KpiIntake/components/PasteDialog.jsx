@@ -53,9 +53,9 @@ export default function PasteDialog({ title, columns, optionsFor, onAdd, onClose
           .slice(0, 4)
           .map((column) => column.label)
           .join("\t")}\t…`}
-        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-mono text-xs text-slate-900 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 font-mono text-xs text-slate-900 dark:text-white shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-500/15"
       />
-      <p className="mt-2 text-xs leading-5 text-slate-500">
+      <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
         Column titles: {columns.map((column) => column.label).join(", ")}.
       </p>
     </Dialog>

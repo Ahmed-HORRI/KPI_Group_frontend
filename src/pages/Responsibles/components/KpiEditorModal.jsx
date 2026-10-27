@@ -710,7 +710,7 @@ export default function KpiEditorModal({
                   </option>
                 ))}
               </select>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 Displayed KPI = Raw value /{" "}
                 {referenceOptions.find((o) => o.value === String(form.reference_kpi_id))?.label ||
                   "Reference KPI"}{" "}
@@ -795,7 +795,7 @@ export default function KpiEditorModal({
 
       <Field label="KPI File" hint="Upload any file type (max 20 MB)">
         <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-3.5 py-3 dark:border-slate-700 dark:bg-slate-800/60">
-          <input ref={fileInputRef} type="file" className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#0078D7] file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-[#0067b8] dark:text-slate-300" onChange={handleFileChange} />
+          <input ref={fileInputRef} type="file" className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-white hover:file:bg-blue-700 dark:text-slate-300" onChange={handleFileChange} />
           {form.file_url ? (
             <span className="text-xs text-slate-500 dark:text-slate-400">
               Current file:{" "}
@@ -811,7 +811,7 @@ export default function KpiEditorModal({
             </span>
           ) : null}
           {pendingFile ? (
-            <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
               Selected file: {pendingFile.name} ({formatKpiFileSize(pendingFile.size)})
             </span>
           ) : null}
@@ -830,7 +830,7 @@ export default function KpiEditorModal({
               onClick={() => changeToleranceType(o)}
               className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
                 active
-                  ? "bg-[#0078D7] text-white shadow-sm"
+                  ? "bg-blue-600 text-white shadow-sm"
                   : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               }`}
             >

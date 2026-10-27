@@ -229,6 +229,12 @@ export const CloseIcon = (props) => (
   </Icon>
 );
 
+export const MenuIcon = (props) => (
+  <Icon {...props}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </Icon>
+);
+
 export const FactoryIcon = (props) => (
   <Icon {...props}>
     <path d="M3 21V10l5 3V10l5 3V10l5 3V4h3v17H3Z" />
@@ -292,6 +298,13 @@ export const ClipboardIcon = (props) => (
   <Icon {...props}>
     <rect x="5" y="4" width="14" height="17" rx="2" />
     <path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3" />
+  </Icon>
+);
+
+export const GraduationIcon = (props) => (
+  <Icon {...props}>
+    <path d="M2.5 9.5 12 5l9.5 4.5L12 14Z" />
+    <path d="M6.5 11.6V16c0 1.4 2.5 3 5.5 3s5.5-1.6 5.5-3v-4.4M21.5 9.5V15" />
   </Icon>
 );
 

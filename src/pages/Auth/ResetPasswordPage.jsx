@@ -19,7 +19,7 @@ import {
 const backToSignIn = (
   <Link
     to="/login"
-    className="inline-flex items-center gap-1.5 font-semibold text-slate-600 transition hover:text-[#0078D7]"
+    className="inline-flex items-center gap-1.5 font-semibold text-slate-600 dark:text-slate-300 transition hover:text-blue-600 dark:hover:text-blue-400"
   >
     <ArrowLeftIcon size={16} /> Back to sign in
   </Link>
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
   if (link.status === "checking") {
     return (
       <AuthCard title="Checking your link...">
-        <div className="flex items-center gap-3 text-sm text-slate-500">
+        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
           <Spinner /> One moment, we are verifying your link.
         </div>
       </AuthCard>
@@ -102,14 +102,14 @@ export default function ResetPasswordPage() {
     return (
       <AuthCard icon={AlertIcon} iconTone="danger" title="This link can no longer be used" footer={backToSignIn}>
         <AuthStatus>
-          <p className="text-[15px] leading-6 text-slate-600">
+          <p className="text-[15px] leading-6 text-slate-600 dark:text-slate-300">
             {link.message || "This link is invalid or has expired."} Links work once, for a limited time: a reset link for
             60 minutes, an invitation for 72 hours.
           </p>
           <Link to="/forgot-password" className={primaryButtonClass}>
             Request a new link
           </Link>
-          <p className="text-sm text-slate-500">Invitation expired? Ask your administrator to send you a new one.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Invitation expired? Ask your administrator to send you a new one.</p>
         </AuthStatus>
       </AuthCard>
     );
@@ -130,11 +130,11 @@ export default function ResetPasswordPage() {
     >
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         <FormAlert>{error}</FormAlert>
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3">
           <Avatar name={link.fullName || link.email} seed={link.email} size="md" />
           <div className="min-w-0">
-            <div className="truncate text-sm font-bold text-slate-800">{link.fullName || link.email}</div>
-            <div className="truncate text-xs text-slate-500">{link.email}</div>
+            <div className="truncate text-sm font-bold text-slate-800 dark:text-white">{link.fullName || link.email}</div>
+            <div className="truncate text-xs text-slate-500 dark:text-slate-400">{link.email}</div>
           </div>
         </div>
         {/* Lets password managers associate the new password with the account. */}
@@ -159,10 +159,10 @@ export default function ResetPasswordPage() {
             autoComplete="new-password"
           />
           {confirmation && !passwordsMatch ? (
-            <span className="text-xs font-semibold text-red-600">The two passwords do not match.</span>
+            <span className="text-xs font-semibold text-red-600 dark:text-red-400">The two passwords do not match.</span>
           ) : null}
           {confirmation && passwordsMatch && password ? (
-            <span className="text-xs font-semibold text-emerald-600">The passwords match.</span>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">The passwords match.</span>
           ) : null}
         </div>
         <SubmitButton loading={submitting} loadingLabel="Saving..." disabled={!canSubmit}>

@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-
 import MainLayout from "./layouts/MainLayout.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
+import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import { RequireAdmin, RequireAuth, RequireOwnDashboard } from "./auth/RouteGuards.jsx";
 import LoginPage from "./pages/Auth/LoginPage.jsx";
 import ForgotPasswordPage from "./pages/Auth/ForgotPasswordPage.jsx";
@@ -35,51 +36,53 @@ function ResponsibleKpiEditRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Sign-in pages */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            {/* Sign-in pages */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          {/* Open pages, as before -- including every page reached from an e-mail link. */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/form" element={<KpiEntryFormPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
-            <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
-            <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
-            <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
-            <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
-            <Route path="/kpi-admin" element={<KpiAdminPage />} />
-            <Route path="/kpi-trends" element={<KpiTrendsPage />} />
-            {/* KPI & Target Intake: anyone with the link enters lines; only an admin submits them. */}
-            <Route path="/kpi-intake" element={<KpiIntakePage />} />
-            <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
-            <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
-            <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
-            <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
-          </Route>
+            {/* Open pages, as before -- including every page reached from an e-mail link. */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/form" element={<KpiEntryFormPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/dashboard-history" element={<DashboardHistoryPage />} />
+              <Route path="/kpi-training-center" element={<TrainingCenterPage />} />
+              <Route path="/kpi-training-documentation" element={<TrainingDocumentationPage />} />
+              <Route path="/kpi-training-dashboard" element={<TrainingDashboardPage />} />
+              <Route path="/kpi-target-adjustments/review" element={<TargetAdjustmentReviewPage />} />
+              <Route path="/kpi-admin" element={<KpiAdminPage />} />
+              <Route path="/kpi-trends" element={<KpiTrendsPage />} />
+              {/* KPI & Target Intake: anyone with the link enters lines; only an admin submits them. */}
+              <Route path="/kpi-intake" element={<KpiIntakePage />} />
+              <Route path="/ceo-report/plants/:plantId" element={<CeoReportPlantPage />} />
+              <Route path="/corrective-actions-list" element={<CorrectiveActionsListPage />} />
+              <Route path="/corrective-action-form" element={<CorrectiveActionFormPage />} />
+              <Route path="/corrective-actions-bulk" element={<CorrectiveActionsBulkPage />} />
+            </Route>
 
-          {/* Sign-in required: the Responsible KPI Dashboard and the user administration. */}
-          <Route element={<RequireAuth />}>
-            <Route element={<AppLayout />}>
-              <Route path="/change-password" element={<ChangePasswordPage />} />
-              {/* Each user: their own dashboard only (id = their people_id) */}
-              <Route element={<RequireOwnDashboard />}>
-                <Route path="/responsible/:responsibleId/dashboard" element={<ResponsibleDashboardPage />} />
-                <Route path="/responsible/:responsibleId/kpis/:kpiId/edit" element={<ResponsibleKpiEditRedirect />} />
-              </Route>
+            {/* Sign-in required: the Responsible KPI Dashboard and the user administration. */}
+            <Route element={<RequireAuth />}>
+              <Route element={<AppLayout />}>
+                <Route path="/change-password" element={<ChangePasswordPage />} />
+                {/* Each user: their own dashboard only (id = their people_id) */}
+                <Route element={<RequireOwnDashboard />}>
+                  <Route path="/responsible/:responsibleId/dashboard" element={<ResponsibleDashboardPage />} />
+                  <Route path="/responsible/:responsibleId/kpis/:kpiId/edit" element={<ResponsibleKpiEditRedirect />} />
+                </Route>
 
-              {/* Administrators only */}
-              <Route element={<RequireAdmin />}>
-                <Route path="/admin/users" element={<UserManagementPage />} />
+                {/* Administrators only */}
+                <Route element={<RequireAdmin />}>
+                  <Route path="/admin/users" element={<UserManagementPage />} />
+                </Route>
               </Route>
             </Route>
-          </Route>
-        </Routes>
-      </AuthProvider>
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

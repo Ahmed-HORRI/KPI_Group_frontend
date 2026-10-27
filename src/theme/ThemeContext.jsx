@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 // Historical name (the toggle started on the Responsible dashboard), kept so
-// the choice users already saved still applies.
+// the choice users already saved still applies. index.html reads it too.
 const STORAGE_KEY = "responsible-dashboard-theme";
 
 const ThemeContext = createContext(null);
@@ -14,8 +14,9 @@ function readStoredDarkMode() {
   }
 }
 
-// Light / dark theme of the signed-in pages (dashboard, administration,
-// password change), one choice shared by all of them.
+// Light / dark theme of the whole application (signed-in pages, the open
+// pages reached from e-mails and the sign-in screens): one choice, kept in
+// this browser.
 export function ThemeProvider({ children }) {
   const [darkMode, setDarkMode] = useState(readStoredDarkMode);
 
@@ -28,12 +29,19 @@ export function ThemeProvider({ children }) {
   }, [darkMode]);
 
   // On <html> rather than a page wrapper so dialogs and menus, rendered in
-  // portals on <body>, follow it too. Removed when the signed-in area is left:
-  // the open pages and sign-in screens have no dark styles.
+  // portals on <body>, follow it too. Printing always uses the light theme.
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.classList.toggle("dark", darkMode);
-    return () => root.classList.remove("dark");
+    if (!darkMode) return undefined;
+    const beforePrint = () => root.classList.remove("dark");
+    const afterPrint = () => root.classList.add("dark");
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", beforePrint);
+      window.removeEventListener("afterprint", afterPrint);
+    };
   }, [darkMode]);
 
   const value = useMemo(

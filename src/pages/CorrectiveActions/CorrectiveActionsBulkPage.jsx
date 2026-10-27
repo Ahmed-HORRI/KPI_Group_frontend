@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { TargetIcon } from "../../components/icons.jsx";
 
 // Data source note: the original GET /corrective-actions-bulk queried
 // public."Responsible"/"Plant"/"Department" and public.corrective_actions --
@@ -97,7 +99,7 @@ export default function CorrectiveActionsBulkPage() {
   if (!responsibleId || !week) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id or week
         </div>
       </div>
@@ -105,20 +107,20 @@ export default function CorrectiveActionsBulkPage() {
   }
 
   if (loading) {
-    return <div className="p-10 text-center text-slate-400">Loading corrective actions...</div>;
+    return <div className="p-10 text-center text-slate-400 dark:text-slate-500">Loading corrective actions...</div>;
   }
 
   if (error) {
-    return <div className="p-10 text-center text-red-500">{error}</div>;
+    return <div className="p-10 text-center text-red-500 dark:text-red-400">{error}</div>;
   }
 
   if (completedCount !== null) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center p-6">
-        <div className="rounded-3xl bg-white p-10 text-center shadow-xl">
-          <h1 className="text-2xl font-bold text-green-600">All Corrective Actions Submitted!</h1>
-          <div className="my-5 text-5xl font-extrabold text-green-600">{completedCount}</div>
-          <p className="text-sm text-slate-500">
+        <div className="rounded-3xl bg-white dark:bg-slate-900 p-10 text-center shadow-xl">
+          <h1 className="text-2xl font-bold text-green-600 dark:text-green-400">All Corrective Actions Submitted!</h1>
+          <div className="my-5 text-5xl font-extrabold text-green-600 dark:text-green-400">{completedCount}</div>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             You have successfully submitted all corrective actions for week {week}.<br />
             The quality team will review your submissions.
           </p>
@@ -136,9 +138,9 @@ export default function CorrectiveActionsBulkPage() {
   if (actions.length === 0) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-lg items-center justify-center p-6">
-        <div className="rounded-3xl bg-white p-10 text-center shadow-xl">
-          <h2 className="text-2xl font-bold text-green-600">No Open Corrective Actions</h2>
-          <p className="mt-2 text-sm text-slate-500">All corrective actions for week {week} have been completed.</p>
+        <div className="rounded-3xl bg-white dark:bg-slate-900 p-10 text-center shadow-xl">
+          <h2 className="text-2xl font-bold text-green-600 dark:text-green-400">No Open Corrective Actions</h2>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">All corrective actions for week {week} have been completed.</p>
           <Link
             to={`/dashboard?responsible_id=${encodeURIComponent(responsibleId)}`}
             className="mt-6 inline-block rounded-xl btn-brand px-6 py-3 text-sm font-bold shadow-lg"
@@ -152,12 +154,17 @@ export default function CorrectiveActionsBulkPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6">
-      <div className="mb-6 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-700 p-7 text-white shadow-lg">
-        <h1 className="text-3xl font-extrabold">Bulk Corrective Actions — Week {week}</h1>
-        <p className="mt-1.5 text-sm text-white/80">Complete all open corrective actions for this week in one go.</p>
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-blue-950 to-blue-700 p-7 text-white shadow-lg">
+        <BoardTitle
+          inverse
+          icon={TargetIcon}
+          eyebrow="Action plan"
+          title={`Bulk Corrective Actions — Week ${week}`}
+          subtitle="Complete all open corrective actions for this week in one go."
+        />
       </div>
 
-      {saveError && <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{saveError}</div>}
+      {saveError && <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 dark:text-red-300">{saveError}</div>}
 
       <form onSubmit={submitAll} className="flex flex-col gap-6">
         {actions.map((action, index) => {
@@ -168,66 +175,66 @@ export default function CorrectiveActionsBulkPage() {
           const gap = currentVal !== null && targetVal !== null ? (targetVal - currentVal).toFixed(2) : null;
 
           return (
-            <div key={action.corrective_action_id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div key={action.corrective_action_id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
               <div className="mb-4 flex items-start gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
                   {index + 1}
                 </div>
                 <div>
-                  <div className="font-bold text-slate-800">{kpi.subject || "KPI"}</div>
-                  {kpi.indicator_sub_title && <div className="text-xs text-slate-400">{kpi.indicator_sub_title}</div>}
+                  <div className="font-bold text-slate-800 dark:text-white">{kpi.subject || "KPI"}</div>
+                  {kpi.indicator_sub_title && <div className="text-xs text-slate-400 dark:text-slate-500">{kpi.indicator_sub_title}</div>}
                 </div>
               </div>
 
               <div className="mb-5 grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-                  <div className="text-[10px] font-bold uppercase text-slate-400">Current Value</div>
-                  <div className="mt-1 text-sm font-bold text-slate-800">{kpi.current_value || "0"} {kpi.unit || ""}</div>
+                <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Current Value</div>
+                  <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{kpi.current_value || "0"} {kpi.unit || ""}</div>
                 </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-                  <div className="text-[10px] font-bold uppercase text-slate-400">Target</div>
-                  <div className="mt-1 text-sm font-bold text-slate-800">{kpi.target || "N/A"} {kpi.unit || ""}</div>
+                <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Target</div>
+                  <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{kpi.target || "N/A"} {kpi.unit || ""}</div>
                 </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-center">
-                  <div className="text-[10px] font-bold uppercase text-slate-400">Gap</div>
-                  <div className="mt-1 text-sm font-bold text-slate-800">{gap ?? "N/A"} {kpi.unit || ""}</div>
+                <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5 text-center">
+                  <div className="text-[10px] font-bold uppercase text-slate-400 dark:text-slate-500">Gap</div>
+                  <div className="mt-1 text-sm font-bold text-slate-800 dark:text-white">{gap ?? "N/A"} {kpi.unit || ""}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <label className="flex flex-col gap-1.5 text-sm">
-                  <span className="font-semibold text-slate-600">Due Date</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Due Date</span>
                   <input
                     type="date"
-                    className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                     value={form.due_date}
                     onChange={(e) => updateField(action.corrective_action_id, "due_date", e.target.value)}
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-sm">
-                  <span className="font-semibold text-slate-600">Responsible</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Responsible</span>
                   <input
                     type="text"
-                    className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                     value={form.responsible}
                     onChange={(e) => updateField(action.corrective_action_id, "responsible", e.target.value)}
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-sm">
-                  <span className="font-semibold text-slate-600">Estimated Days</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Estimated Days</span>
                   <input
                     type="number"
                     min="0"
                     step="1"
-                    className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                     value={form.estimated_duration_days}
                     onChange={(e) => updateField(action.corrective_action_id, "estimated_duration_days", e.target.value)}
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-sm">
-                  <span className="font-semibold text-slate-600">Importance</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Importance</span>
                   <select
-                    className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                     value={form.importance}
                     onChange={(e) => updateField(action.corrective_action_id, "importance", e.target.value)}
                   >
@@ -238,9 +245,9 @@ export default function CorrectiveActionsBulkPage() {
                   </select>
                 </label>
                 <label className="flex flex-col gap-1.5 text-sm">
-                  <span className="font-semibold text-slate-600">Urgency</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">Urgency</span>
                   <select
-                    className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                     value={form.urgency}
                     onChange={(e) => updateField(action.corrective_action_id, "urgency", e.target.value)}
                   >
@@ -253,17 +260,17 @@ export default function CorrectiveActionsBulkPage() {
               </div>
 
               <label className="mt-4 flex flex-col gap-1.5 text-sm">
-                <span className="font-semibold text-slate-600">Root Cause</span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">Root Cause</span>
                 <textarea
-                  className="min-h-[80px] rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                  className="min-h-[80px] rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                   value={form.root_cause}
                   onChange={(e) => updateField(action.corrective_action_id, "root_cause", e.target.value)}
                 />
               </label>
               <label className="mt-3 flex flex-col gap-1.5 text-sm">
-                <span className="font-semibold text-slate-600">Implemented Solution</span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">Implemented Solution</span>
                 <textarea
-                  className="min-h-[80px] rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
+                  className="min-h-[80px] rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:border-blue-400"
                   value={form.implemented_solution}
                   onChange={(e) => updateField(action.corrective_action_id, "implemented_solution", e.target.value)}
                 />

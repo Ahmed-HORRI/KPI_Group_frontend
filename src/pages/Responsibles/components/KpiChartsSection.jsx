@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import apiClient, { getApiErrorMessage } from "../../../api/client";
 import SelectMenu from "../../../components/SelectMenu.jsx";
+import { useChartColors } from "../../../theme/chartColors.js";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -36,10 +37,10 @@ ChartJS.register(
   Legend
 );
 
-// Validated status palette (references/palette.md) -- reserved for
-// good/critical state, never reused as a categorical series color.
-const STATUS_GOOD = "#0ca30c";
-const STATUS_CRITICAL = "#d03b3b";
+// Colors (theme/chartColors.js): bars in the status colors -- reserved for
+// good/critical state, never reused as a categorical series color -- the
+// target in AVO blue, both limits in GROUP orange (the high one always sits
+// above the low one, and the legend and chips name them).
 
 // Port of the original page's "My KPI Analytics" section (loadKpiCharts).
 //
@@ -63,25 +64,26 @@ function normalizeChartDirection(direction) {
   return String(direction || "").trim().toLowerCase() === "down" ? "down" : "up";
 }
 
-function getChartValueBandColor(value, lowLimit, highLimit, direction) {
+// true when the value is out of its limits, null without a value.
+function isChartValueBad(value, lowLimit, highLimit, direction) {
   const numericValue = normalizeChartLimitValue(value);
   const low = normalizeChartLimitValue(lowLimit);
   const high = normalizeChartLimitValue(highLimit);
   const resolvedDirection = normalizeChartDirection(direction);
 
-  if (numericValue === null) return "rgba(148, 163, 184, 0.85)";
+  if (numericValue === null) return null;
 
   const lowerBound = low !== null && high !== null ? Math.min(low, high) : low;
   const upperBound = low !== null && high !== null ? Math.max(low, high) : high;
   const isBelowLower = lowerBound !== null && numericValue < lowerBound;
   const isAboveUpper = upperBound !== null && numericValue > upperBound;
-  const isBad = resolvedDirection === "down" ? isAboveUpper : isBelowLower;
-
-  return isBad ? STATUS_CRITICAL : STATUS_GOOD;
+  return resolvedDirection === "down" ? isAboveUpper : isBelowLower;
 }
 
-function getChartValueBorderColor(value, lowLimit, highLimit, direction) {
-  return getChartValueBandColor(value, lowLimit, highLimit, direction);
+function getChartValueBandColor(value, lowLimit, highLimit, direction, colors) {
+  const isBad = isChartValueBad(value, lowLimit, highLimit, direction);
+  if (isBad === null) return colors.missing;
+  return isBad ? colors.critical : colors.good;
 }
 
 const kpiThresholdBandsPlugin = {
@@ -132,7 +134,8 @@ const kpiThresholdBandsPlugin = {
   },
 };
 
-function KpiChartCard({ row, darkMode }) {
+function KpiChartCard({ row }) {
+  const colors = useChartColors();
   const sourceLabels = Array.isArray(row.labels) ? row.labels : [];
   const periodLabels = sourceLabels.map((_, index) => `Period ${index + 1}`);
   const values = Array.isArray(row.values) ? row.values : [];
@@ -142,10 +145,7 @@ function KpiChartCard({ row, darkMode }) {
   const lowLimitSeries = sourceLabels.map(() => row.lowLimitValue ?? null);
 
   const barColors = values.map((value) =>
-    getChartValueBandColor(value, row.lowLimitValue, row.highLimitValue, row.targetDirection)
-  );
-  const barBorderColors = values.map((value) =>
-    getChartValueBorderColor(value, row.lowLimitValue, row.highLimitValue, row.targetDirection)
+    getChartValueBandColor(value, row.lowLimitValue, row.highLimitValue, row.targetDirection, colors)
   );
 
   const axisValues = [...values, ...targetSeries, ...highLimitSeries, ...lowLimitSeries]
@@ -172,19 +172,19 @@ function KpiChartCard({ row, darkMode }) {
         label: "Actual Value",
         data: values,
         borderWidth: 1,
-        borderColor: barBorderColors,
+        borderColor: barColors,
         backgroundColor: barColors,
         borderRadius: 6,
         borderSkipped: false,
         barThickness: 26,
       },
       {
-        // Categorical slot 7 (violet) -- deliberately not red/green, which
-        // are reserved for the bar's good/critical status coloring above.
+        // AVO blue -- deliberately not red/green, which are reserved for the
+        // bar's good/critical status coloring above.
         type: "line",
         label: "Target",
         data: targetSeries,
-        borderColor: "#4a3aa7",
+        borderColor: colors.target,
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -192,11 +192,10 @@ function KpiChartCard({ row, darkMode }) {
         borderDash: [6, 4],
       },
       {
-        // Categorical slot 2 (orange).
         type: "line",
         label: "High Limit",
         data: highLimitSeries,
-        borderColor: "#eb6834",
+        borderColor: colors.limit,
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -204,11 +203,10 @@ function KpiChartCard({ row, darkMode }) {
         borderDash: [8, 5],
       },
       {
-        // Categorical slot 1 (blue).
         type: "line",
         label: "Low Limit",
         data: lowLimitSeries,
-        borderColor: "#2a78d6",
+        borderColor: colors.limit,
         borderWidth: 2,
         tension: 0,
         fill: false,
@@ -238,7 +236,7 @@ function KpiChartCard({ row, darkMode }) {
           boxWidth: 8,
           boxHeight: 8,
           padding: 14,
-          color: darkMode ? "#cbd5e1" : "#52514e",
+          color: colors.legend,
           font: { size: 11, weight: "600" },
           filter: (item) => item.text !== "Actual Value",
         },
@@ -261,11 +259,11 @@ function KpiChartCard({ row, darkMode }) {
         title: {
           display: true,
           text: "Period",
-          color: darkMode ? "#e2e8f0" : "#0f172a",
+          color: colors.title,
           font: { size: 13, weight: "700" },
         },
         grid: { display: false },
-        ticks: { color: darkMode ? "#94a3b8" : "#64748b" },
+        ticks: { color: colors.text },
       },
       y: {
         beginAtZero: false,
@@ -274,11 +272,11 @@ function KpiChartCard({ row, darkMode }) {
         title: {
           display: true,
           text: "Value",
-          color: darkMode ? "#e2e8f0" : "#0f172a",
+          color: colors.title,
           font: { size: 13, weight: "700" },
         },
-        ticks: { color: darkMode ? "#94a3b8" : "#64748b" },
-        grid: { color: darkMode ? "rgba(148,163,184,0.1)" : "rgba(148,163,184,0.15)" },
+        ticks: { color: colors.text },
+        grid: { color: colors.grid },
       },
     },
   };
@@ -286,8 +284,7 @@ function KpiChartCard({ row, darkMode }) {
   const latestValue = values.length ? values[values.length - 1] : null;
   const latestIsBad =
     latestValue !== null &&
-    getChartValueBandColor(latestValue, row.lowLimitValue, row.highLimitValue, row.targetDirection) ===
-      STATUS_CRITICAL;
+    isChartValueBad(latestValue, row.lowLimitValue, row.highLimitValue, row.targetDirection) === true;
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
@@ -302,15 +299,15 @@ function KpiChartCard({ row, darkMode }) {
         </div>
         {latestValue !== null ? (
           <span
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
-            style={{
-              backgroundColor: latestIsBad ? "rgba(208,59,59,0.10)" : "rgba(12,163,12,0.10)",
-              color: latestIsBad ? STATUS_CRITICAL : STATUS_GOOD,
-            }}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+              latestIsBad
+                ? "bg-red-500/10 text-red-700 dark:text-red-300"
+                : "bg-green-500/10 text-green-700 dark:text-green-300"
+            }`}
           >
             <span
               className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: latestIsBad ? STATUS_CRITICAL : STATUS_GOOD }}
+              style={{ backgroundColor: latestIsBad ? colors.critical : colors.good }}
             />
             {latestIsBad ? "Off target" : "On target"}
           </span>
@@ -318,16 +315,16 @@ function KpiChartCard({ row, darkMode }) {
       </div>
 
       <div className="flex flex-wrap gap-2 px-5 pt-4 text-xs font-bold">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#4a3aa7]" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-500" />
           Target: {row.targetValue ?? "-"}
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#eb6834]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-orange-500 dark:bg-orange-600" />
           High Limit: {row.highLimitValue ?? "-"}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#2a78d6]" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-orange-500 dark:bg-orange-600" />
           Low Limit: {row.lowLimitValue ?? "-"}
         </span>
       </div>
@@ -387,7 +384,7 @@ function buildFrequencyOptions(rows, selectedFrequency) {
 // frequency; CEO, VP, plant / zone managers and administrators can also pick a
 // unit and a responsible of their scope (the server decides the scope and
 // enforces it).
-export default function KpiChartsSection({ responsibleId, darkMode }) {
+export default function KpiChartsSection({ responsibleId }) {
   const [filters, setFilters] = useState(null);
   const [unitId, setUnitId] = useState("");
   const [selected, setSelected] = useState("me"); // "me" | "all" | people_id
@@ -500,10 +497,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
         noReading += 1;
         return;
       }
-      const isBad =
-        getChartValueBandColor(latest, row.lowLimitValue, row.highLimitValue, row.targetDirection) ===
-        STATUS_CRITICAL;
-      if (isBad) offTarget += 1;
+      if (isChartValueBad(latest, row.lowLimitValue, row.highLimitValue, row.targetDirection)) offTarget += 1;
       else onTarget += 1;
     });
     return { total: filteredRows.length, onTarget, offTarget, noReading };
@@ -535,8 +529,8 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
     <section>
       <div className="relative mb-5 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-emerald-200/45 blur-3xl dark:bg-emerald-500/10" />
-          <div className="absolute -top-24 right-48 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/10" />
+          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-orange-200/40 blur-3xl dark:bg-orange-500/10" />
+          <div className="absolute -top-24 right-48 h-48 w-48 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-500/10" />
         </div>
 
         <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -602,7 +596,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
                 <button
                   type="button"
                   onClick={() => changeResponsible("me")}
-                  className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-[#0078D7] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/40 dark:text-blue-400 dark:hover:bg-slate-800"
+                  className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold text-blue-600 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 dark:text-blue-400 dark:hover:bg-slate-800"
                 >
                   <ArrowLeftIcon size={16} /> Back to my KPIs
                 </button>
@@ -642,7 +636,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
           <button
             type="button"
             onClick={() => changeFrequency("")}
-            className="font-semibold text-[#0078D7] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D7]/40 dark:text-blue-400"
+            className="font-semibold text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 dark:text-blue-400"
           >
             Show all frequencies
           </button>
@@ -659,7 +653,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
                   </div>
                   <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
                     {group.rows.map((row) => (
-                      <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} darkMode={darkMode} />
+                      <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} />
                     ))}
                   </div>
                 </div>
@@ -668,7 +662,7 @@ export default function KpiChartsSection({ responsibleId, darkMode }) {
           ) : (
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               {visibleRows.map((row) => (
-                <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} darkMode={darkMode} />
+                <KpiChartCard key={`${row.responsible_id}-${row.kpi_id}`} row={row} />
               ))}
             </div>
           )}

@@ -91,7 +91,7 @@ export default function SubjectTreePicker({
             {loading ? "Loading subjects..." : displayPath || "Select subject from tree"}
           </span>
           {!displayPath && !loading ? (
-            <span className="mt-1 block text-xs text-slate-400">Open the visual hierarchy to choose a subject and follow its branch.</span>
+            <span className="mt-1 block text-xs text-slate-400 dark:text-slate-500">Open the visual hierarchy to choose a subject and follow its branch.</span>
           ) : null}
         </span>
         <span aria-hidden="true" className="shrink-0 text-xs text-blue-600 dark:text-blue-400">{open ? "▴" : "▾"}</span>
@@ -129,7 +129,7 @@ export default function SubjectTreePicker({
             >
               × Reset
             </button>
-            <span className="text-xs text-slate-400">Choose a final subject to confirm.</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">Choose a final subject to confirm.</span>
           </div>
           {tree.length ? (
             <div ref={columnsRef} className="overflow-x-auto">
@@ -139,9 +139,9 @@ export default function SubjectTreePicker({
                   return (
                     <div key={level} className="w-56 shrink-0 border-r border-slate-100 last:border-r-0 dark:border-slate-800">
                       <div className="flex flex-col gap-0.5 border-b border-slate-100 bg-blue-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-blue-500/10">
-                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Level {level + 1}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Level {level + 1}</span>
                         <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{LEVEL_TITLES[level]}</span>
-                        <span className="text-[10px] text-slate-400">{filtered.length} items</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{filtered.length} items</span>
                       </div>
                       <div className="h-[min(24rem,50vh)] overflow-y-auto p-1">
                         {filtered.map((node) => {
@@ -158,15 +158,15 @@ export default function SubjectTreePicker({
                               <span className="shrink-0 rounded-md bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">L{level}</span>
                               <span className="min-w-0 flex-1">
                                 <span className="block break-words text-xs font-bold text-slate-900 dark:text-slate-100">{node.name}</span>
-                                <span className="mt-0.5 block text-[10px] text-slate-400">
+                                <span className="mt-0.5 block text-[10px] text-slate-400 dark:text-slate-500">
                                   {final ? (node.children.length ? "Select this subject" : "Leaf · select this") : `${node.children.length} ${node.children.length === 1 ? "child" : "children"}`}
                                 </span>
                               </span>
-                              {!final ? <span aria-hidden="true" className="text-[10px] text-slate-400">▶</span> : null}
+                              {!final ? <span aria-hidden="true" className="text-[10px] text-slate-400 dark:text-slate-500">▶</span> : null}
                             </button>
                           );
                         })}
-                        {!filtered.length ? <p className="p-3 text-center text-xs text-slate-400">No matches</p> : null}
+                        {!filtered.length ? <p className="p-3 text-center text-xs text-slate-400 dark:text-slate-500">No matches</p> : null}
                       </div>
                     </div>
                   );

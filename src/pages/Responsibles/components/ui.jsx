@@ -130,12 +130,12 @@ const STAT_TILE_TONES = {
     "border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100",
   muted:
     "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-800/30 dark:text-slate-500",
-  indigo:
-    "border-indigo-100 bg-indigo-50 text-indigo-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300",
+  navy:
+    "border-blue-200 bg-blue-100/70 text-blue-900 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200",
   blue:
     "border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300",
-  violet:
-    "border-violet-100 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300",
+  orange:
+    "border-orange-100 bg-orange-50 text-orange-700 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300",
   green:
     "border-green-100 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-300",
   red: "border-red-100 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
@@ -157,9 +157,10 @@ export function StatusPill({ children, tone = "slate" }) {
     red: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
     blue: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300",
-    violet: "bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300",
-    indigo: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300",
-    cyan: "bg-cyan-50 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300",
+    orange: "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300",
+    navy: "bg-blue-100 text-blue-900 dark:bg-blue-400/15 dark:text-blue-200",
+    sky: "bg-white text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-transparent dark:text-blue-300 dark:ring-blue-500/30",
+    brand: "bg-blue-600 text-white",
   };
   if (!children) return <span className="text-slate-300 dark:text-slate-600">-</span>;
   return (
@@ -184,7 +185,7 @@ export function toneForStatus(status) {
 // tone rather than a status color.
 export function toneForAllocationType(type) {
   const value = String(type || "").trim().toLowerCase();
-  if (value === "multisite") return "violet";
+  if (value === "multisite") return "orange";
   if (value === "individual") return "blue";
   if (value === "zone") return "amber";
   if (value === "role") return "green";
@@ -194,7 +195,7 @@ export function toneForAllocationType(type) {
 export function toneForDirection(direction) {
   const value = String(direction || "").trim().toLowerCase();
   if (value === "up") return "blue";
-  if (value === "down") return "violet";
+  if (value === "down") return "orange";
   return "slate";
 }
 

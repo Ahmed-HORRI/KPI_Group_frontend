@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import apiClient from "../../api/client";
+import BoardTitle from "../../components/BoardTitle.jsx";
+import { CalendarIcon } from "../../components/icons.jsx";
 
 // Data source note: the original GET /dashboard-history queried
 // public.kpi_values_hist26 JOIN public."Kpi" -- confirmed via
@@ -60,7 +62,7 @@ export default function DashboardHistoryPage() {
   if (!responsibleId) {
     return (
       <div className="mx-auto max-w-xl p-10">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+        <div className="rounded-2xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-6 text-center text-sm font-semibold text-red-600 dark:text-red-400">
           Missing responsible_id
         </div>
       </div>
@@ -69,13 +71,13 @@ export default function DashboardHistoryPage() {
 
   return (
     <div className="mx-auto max-w-[1000px] p-6">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-extrabold text-blue-600">KPI Value History</h1>
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm">
+        <BoardTitle icon={CalendarIcon} eyebrow="KPI history" title="KPI Value History" />
 
-        {loading && <div className="p-14 text-center text-slate-400">Loading history...</div>}
+        {loading && <div className="p-14 text-center text-slate-400 dark:text-slate-500">Loading history...</div>}
 
         {!loading && unavailable && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-700">
+          <div className="mt-6 rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-6 text-center text-sm text-amber-700 dark:text-amber-300">
             No KPI value history records available for this responsible.
           </div>
         )}
@@ -85,23 +87,23 @@ export default function DashboardHistoryPage() {
             <table className="w-full border-collapse text-center text-sm">
               <thead>
                 <tr className="bg-blue-600 text-white">
-                  <th className="border border-slate-200 px-3 py-2.5">Indicator</th>
-                  <th className="border border-slate-200 px-3 py-2.5">Sub Title</th>
-                  <th className="border border-slate-200 px-3 py-2.5">Week</th>
-                  <th className="border border-slate-200 px-3 py-2.5">Value</th>
-                  <th className="border border-slate-200 px-3 py-2.5">Unit</th>
-                  <th className="border border-slate-200 px-3 py-2.5">Updated At</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Indicator</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Sub Title</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Week</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Value</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Unit</th>
+                  <th className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">Updated At</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, index) => (
-                  <tr key={row.hist_id ?? index} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-                    <td className="border border-slate-200 px-3 py-2.5">{row.subject}</td>
-                    <td className="border border-slate-200 px-3 py-2.5">{row.indicator_sub_title || "-"}</td>
-                    <td className="border border-slate-200 px-3 py-2.5">{row.week}</td>
-                    <td className="border border-slate-200 px-3 py-2.5">{row.value ?? "-"}</td>
-                    <td className="border border-slate-200 px-3 py-2.5">{row.unit || ""}</td>
-                    <td className="border border-slate-200 px-3 py-2.5">{formatTimestamp(row.updated_at)}</td>
+                  <tr key={row.hist_id ?? index} className={index % 2 === 1 ? "bg-slate-50 dark:bg-slate-800/60" : ""}>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{row.subject}</td>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{row.indicator_sub_title || "-"}</td>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{row.week}</td>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{row.value ?? "-"}</td>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{row.unit || ""}</td>
+                    <td className="border border-slate-200 dark:border-slate-800 px-3 py-2.5">{formatTimestamp(row.updated_at)}</td>
                   </tr>
                 ))}
               </tbody>
