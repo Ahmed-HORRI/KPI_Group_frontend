@@ -1,13 +1,12 @@
-// Brand colors only (AVO blue, GROUP orange, Carbon gray), each dark enough
-// for white initials.
+// Shades of AVO blue, as the icon tiles of the board titles: each one dark
+// enough for white initials (blue-600 and darker). No orange (dark enough for
+// white text it turns brown) and no gray. On the navy dark theme the darkest
+// shades step up to blue-600 so the avatar stays visible.
 const AVATAR_TONES = [
-  "bg-blue-600 text-white",
-  "bg-orange-700 text-white",
-  "bg-slate-600 text-white",
-  "bg-blue-800 text-white",
-  "bg-blue-950 text-white",
-  "bg-orange-800 text-white",
-  "bg-blue-700 text-white",
+  "bg-gradient-to-br from-blue-600 to-blue-700 text-white",
+  "bg-gradient-to-br from-blue-600 to-blue-800 text-white",
+  "bg-gradient-to-br from-blue-700 to-blue-900 text-white dark:from-blue-600 dark:to-blue-800",
+  "bg-gradient-to-br from-blue-800 to-blue-950 text-white dark:from-blue-600 dark:to-blue-700",
 ];
 
 const SIZES = {
@@ -32,7 +31,7 @@ function getTone(seed) {
 export default function Avatar({ name, seed, size = "md", className = "" }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold tracking-wide ${SIZES[size] || SIZES.md} ${getTone(seed || name)} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold tracking-wide dark:ring-1 dark:ring-inset dark:ring-white/15 ${SIZES[size] || SIZES.md} ${getTone(seed || name)} ${className}`}
       aria-hidden="true"
     >
       {getInitials(name)}

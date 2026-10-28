@@ -9,6 +9,7 @@ import {
   BriefcaseIcon,
   ChartIcon,
   CheckCircleIcon,
+  CheckIcon,
   ClipboardIcon,
   CloseIcon,
   FactoryIcon,
@@ -654,14 +655,10 @@ export default function KpiIntakePage() {
 
   return (
     <div className={`mx-auto max-w-[1700px] px-4 pt-6 sm:px-6 ${isAdmin ? "pb-28" : "pb-12"}`}>
-      <header className="relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-blue-200/45 dark:bg-blue-500/20 blur-3xl" />
-          <div className="absolute -top-24 right-48 h-48 w-48 rounded-full bg-orange-200/35 dark:bg-orange-500/20 blur-3xl" />
-        </div>
-
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
+      <header className="overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900 dark:shadow-none">
+        <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-5 p-6">
           <BoardTitle
+            className="flex-1 basis-[26rem]"
             icon={ClipboardIcon}
             eyebrow="KPI tables"
             title="KPI & Target Intake"
@@ -671,37 +668,10 @@ export default function KpiIntakePage() {
                 : "Propose new KPIs and target allocations for the KPI tables."
             }
           />
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            {/* Signed in: the way back to the dashboard and the role are in the page header (MainLayout). */}
-            {authStatus !== "loading" && !user ? (
-              <Link
-                to={`/login?next=${encodeURIComponent("/kpi-intake")}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition hover:ring-blue-600/40"
-              >
-                <LoginIcon size={15} /> Sign in to see and change the existing KPIs
-              </Link>
-            ) : null}
-          </div>
-        </div>
 
-        <div className="relative mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
-          {/* How a line goes from this page to the KPI tables. */}
-          <ol className="grid gap-3 sm:grid-cols-3">
-            {intakeSteps({ canSeeRecords, isAdmin }).map((item, index) => (
-              <li key={item.title} className="flex gap-3 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 p-3.5 ring-1 ring-inset ring-slate-200/70 dark:ring-slate-700">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-xs font-bold text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-blue-600/25">
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.title}</p>
-                  <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{item.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-
-          <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 p-3.5 ring-1 ring-inset ring-slate-200/70 dark:ring-slate-700">
-            <p className="text-sm font-semibold text-slate-800 dark:text-white">
+          {/* Who the lines are saved under: the one thing to fill before saving. */}
+          <div className="w-full sm:w-[380px]">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Submitted by <span className="text-red-500 dark:text-red-400">*</span>
             </p>
             <ReferenceInput
@@ -714,11 +684,39 @@ export default function KpiIntakePage() {
               invalid={notice?.tone === "error" && !submittedBy?.id}
             />
             <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Your lines are saved under this name.</p>
+            {/* Signed in: the way back to the dashboard and the role are in the page header (MainLayout). */}
+            {authStatus !== "loading" && !user ? (
+              <Link
+                to={`/login?next=${encodeURIComponent("/kpi-intake")}`}
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              >
+                <LoginIcon size={15} /> Sign in to see and change the existing KPIs
+              </Link>
+            ) : null}
           </div>
         </div>
+
+        {/* How a line goes from this page to the KPI tables: a numbered strip. */}
+        <ol className="grid border-t border-slate-200/80 sm:grid-cols-3 dark:border-slate-800">
+          {intakeSteps({ canSeeRecords, isAdmin }).map((item, index) => (
+            <li
+              key={item.title}
+              className="flex gap-3 border-slate-200/80 px-6 py-4 max-sm:[&:not(:first-child)]:border-t sm:[&:not(:first-child)]:border-l dark:border-slate-800"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm shadow-blue-600/30 dark:shadow-none">
+                {index + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-800 dark:text-white">{item.title}</p>
+                <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{item.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </header>
 
-      <nav className="mt-5 flex flex-wrap items-end gap-2 border-b border-slate-200 dark:border-slate-800" aria-label="Tables">
+      {/* The two tables, as underline tabs; the count is the lines waiting for review. */}
+      <nav className="mt-8 flex flex-wrap items-end gap-6 border-b border-slate-200 dark:border-slate-800" aria-label="Tables">
         {TABS.map(({ entityType: type, label, icon: Icon }) => {
           const active = type === entityType;
           return (
@@ -727,16 +725,18 @@ export default function KpiIntakePage() {
               type="button"
               onClick={() => chooseTab(type)}
               aria-current={active ? "page" : undefined}
-              className={`-mb-px inline-flex items-center gap-2 rounded-t-xl border px-4 py-2.5 text-sm font-bold transition ${
+              className={`-mb-px inline-flex items-center gap-2 border-b-2 px-1 pb-3 pt-1 text-[15px] font-bold transition ${
                 active
-                  ? "border-slate-200 dark:border-slate-800 border-b-white dark:border-b-slate-900 bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  ? "border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300"
+                  : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-white"
               }`}
             >
-              <Icon size={16} />
+              <Icon size={17} />
               {label}
               <span
-                className={`rounded-full px-2 py-0.5 text-[11px] ${active ? "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"}`}
+                className={`min-w-6 rounded-full px-2 py-0.5 text-center text-[11px] ${
+                  active ? "bg-blue-600 text-white" : "bg-slate-200/70 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                }`}
                 title="Lines waiting for review"
               >
                 {tabCounts[type]}
@@ -747,32 +747,47 @@ export default function KpiIntakePage() {
         })}
       </nav>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-0.5 text-sm font-semibold">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <div className="inline-flex rounded-xl bg-slate-200/60 p-1 text-sm font-semibold dark:bg-slate-800">
           {views.map(([value, label, count]) => (
             <button
               key={value}
               type="button"
               onClick={() => chooseView(value)}
               aria-pressed={view === value}
-              className={`rounded-lg px-3 py-1.5 transition ${view === value ? "bg-slate-900 dark:bg-slate-700 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+              className={`rounded-lg px-3.5 py-1.5 transition ${
+                view === value
+                  ? "bg-white text-blue-700 shadow-sm dark:bg-blue-600 dark:text-white"
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+              }`}
             >
               {label}
-              {count !== null ? <span className={`ml-1.5 text-xs ${view === value ? "text-slate-300" :"text-slate-400 dark:text-slate-500"}`}>{count}</span> : null}
+              {count !== null ? (
+                <span
+                  className={`ml-1.5 rounded-full px-1.5 py-px text-[11px] font-bold ${
+                    view === value
+                      ? "bg-blue-50 text-blue-700 dark:bg-white/20 dark:text-white"
+                      : "text-slate-500 dark:text-slate-400"
+                  }`}
+                >
+                  {count}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
-        {!readOnly ? (
-          <>
-            <button type="button" className={buttonClasses.secondary} onClick={addLine} disabled={saving}>
-              <PlusIcon size={16} /> Add line
-            </button>
-            <button type="button" className={buttonClasses.secondary} onClick={() => setPasteOpen(true)} disabled={saving}>
-              <ClipboardIcon size={16} /> Paste from Excel
-            </button>
-          </>
-        ) : null}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {!readOnly ? (
+            <>
+              <button type="button" className={buttonClasses.secondary} onClick={addLine} disabled={saving}>
+                <PlusIcon size={16} /> Add line
+              </button>
+              <button type="button" className={buttonClasses.secondary} onClick={() => setPasteOpen(true)} disabled={saving}>
+                <ClipboardIcon size={16} /> Paste from Excel
+              </button>
+              <span className="mx-1 hidden h-7 w-px bg-slate-200 sm:block dark:bg-slate-700" aria-hidden="true" />
+            </>
+          ) : null}
           <button
             type="button"
             className={buttonClasses.secondary}
@@ -888,20 +903,30 @@ export default function KpiIntakePage() {
         </div>
       ) : null}
 
+      {/* How to read and fill the grid, as a legend. */}
       {!readOnly ? (
-        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-          <span className="text-red-500 dark:text-red-400">*</span> required · <span className="text-amber-500 dark:text-amber-400">*</span> required depending
-          on another column (hover the title) · a name picked in the list shows ✓, a typed name is matched when you save ·
-          you can paste cells copied from Excel straight into the grid
+        <ul className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 dark:text-slate-400" aria-label="How to fill the grid">
+          <li className="inline-flex items-center gap-1.5">
+            <span className="text-sm font-bold text-red-500 dark:text-red-400">*</span> Required
+          </li>
+          <li className="inline-flex items-center gap-1.5" title="Hover a column title to see what it depends on">
+            <span className="text-sm font-bold text-amber-500 dark:text-amber-400">*</span> Required depending on another column
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <CheckIcon size={14} className="text-emerald-600 dark:text-emerald-400" /> Picked in the list — a typed name is matched when you save
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <ClipboardIcon size={14} className="text-slate-400 dark:text-slate-500" /> Cells copied from Excel can be pasted straight into the grid
+          </li>
           {canSeeRecords ? (
-            <>
-              {" "}
-              · <span className="rounded bg-blue-50 dark:bg-blue-500/10 px-1 font-semibold text-blue-700 dark:text-blue-300">blue cells</span> differ from the
-              database (hover them to see its value); only those are checked and written
-            </>
+            <li className="inline-flex items-center gap-1.5">
+              <span className="rounded bg-blue-50 px-1.5 py-0.5 font-semibold text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
+                Blue cell
+              </span>
+              differs from the database (hover it for its value) — only those are checked and written
+            </li>
           ) : null}
-          .
-        </p>
+        </ul>
       ) : null}
 
       <div className="mt-3">
@@ -966,14 +991,27 @@ export default function KpiIntakePage() {
 
       {isAdmin ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur">
-          <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-            <ShieldIcon size={18} className="text-orange-700 dark:text-orange-300" />
-            <p className="text-sm text-slate-700 dark:text-slate-200">
-              <span className="font-bold text-emerald-700 dark:text-emerald-300">{counts.ready} ready</span> ·{" "}
-              <span className="font-semibold text-amber-700 dark:text-amber-300">{plural(counts.duplicate, "duplicate")}</span> ·{" "}
-              <span className="font-semibold text-red-700 dark:text-red-300">{counts.error} to fix</span>
-              <span className="text-slate-400 dark:text-slate-500"> (both tables)</span>
-            </p>
+          <div className="mx-auto flex max-w-[1700px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
+            <span className="inline-flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-white">
+              <ShieldIcon size={17} className="text-orange-700 dark:text-orange-300" /> Admin review
+            </span>
+            <span className="hidden h-5 w-px bg-slate-200 sm:block dark:bg-slate-700" aria-hidden="true" />
+            {/* Where the lines of both tables stand before the submit. */}
+            <ul className="flex flex-wrap items-center gap-2 text-sm font-semibold" aria-label="Lines of both tables">
+              <li className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-inset ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                {counts.ready} ready
+              </li>
+              <li className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-inset ring-amber-600/15 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+                {plural(counts.duplicate, "duplicate")}
+              </li>
+              <li className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-red-700 ring-1 ring-inset ring-red-600/15 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true" />
+                {counts.error} to fix
+              </li>
+            </ul>
+            <span className="text-xs text-slate-400 dark:text-slate-500">both tables</span>
             <button
               type="button"
               className={`${buttonClasses.primary} ml-auto`}

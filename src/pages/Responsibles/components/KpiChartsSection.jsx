@@ -23,7 +23,7 @@ import {
   GlobeIcon,
   UserIcon,
 } from "../../../components/icons.jsx";
-import { EmptyState, StatTile } from "./ui.jsx";
+import { EmptyState, StatTile, ViewHeader } from "./ui.jsx";
 
 ChartJS.register(
   BarController,
@@ -527,38 +527,25 @@ export default function KpiChartsSection({ responsibleId }) {
 
   return (
     <section>
-      <div className="relative mb-5 overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-orange-200/40 blur-3xl dark:bg-orange-500/10" />
-          <div className="absolute -top-24 right-48 h-48 w-48 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-500/10" />
-        </div>
-
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="relative h-12 w-12 shrink-0">
-              <span aria-hidden="true" className="absolute inset-x-2 top-4 -bottom-1.5 rounded-2xl bg-emerald-500/35 blur-md" />
-              <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-emerald-100 text-emerald-600 shadow-sm ring-1 ring-emerald-600/20 dark:from-slate-800 dark:to-emerald-950 dark:text-emerald-400 dark:ring-emerald-500/25">
-                <ChartIcon size={22} />
-              </span>
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-2xl font-semibold tracking-[-0.01em] text-slate-900 dark:text-white">My KPI Analytics</h2>
-              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
-            </div>
-          </div>
-          {canFilter && scopeLabel ? (
-            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs ring-1 ring-inset ring-emerald-600/15 dark:bg-emerald-500/10 dark:ring-emerald-400/20">
-              <GlobeIcon size={14} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
-              <span className="font-medium text-emerald-700/80 dark:text-emerald-300/80">Scope</span>
-              <span className="truncate font-semibold text-emerald-800 dark:text-emerald-200">{scopeLabel}</span>
+      <ViewHeader
+        icon={ChartIcon}
+        title="My KPI Analytics"
+        description={subtitle}
+        actions={
+          canFilter && scopeLabel ? (
+            // Where the unit / responsible choices come from: the viewer's scope.
+            <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-white px-3.5 py-2 text-xs shadow-sm ring-1 ring-inset ring-slate-200 dark:bg-slate-800 dark:shadow-none dark:ring-slate-700">
+              <GlobeIcon size={14} className="shrink-0 text-blue-600 dark:text-blue-300" />
+              <span className="font-medium text-slate-500 dark:text-slate-400">Scope</span>
+              <span className="truncate font-bold text-slate-800 dark:text-slate-100">{scopeLabel}</span>
             </span>
-          ) : null}
-        </div>
-
+          ) : null
+        }
+      >
         {/* Waits for the scope so the bar does not grow once it is known. */}
         {filters ? (
-          <div className="relative mt-6">
-            <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-50/80 p-2 ring-1 ring-inset ring-slate-200/70 sm:inline-flex sm:w-auto sm:max-w-full dark:bg-slate-800/40 dark:ring-slate-700/60">
+          <div>
+            <div className="flex w-full flex-wrap items-center gap-2">
               {canFilter ? (
                 <>
                   <SelectMenu
@@ -609,7 +596,7 @@ export default function KpiChartsSection({ responsibleId }) {
             ) : null}
           </div>
         ) : null}
-      </div>
+      </ViewHeader>
 
       {!loading && !error && filteredRows.length ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">

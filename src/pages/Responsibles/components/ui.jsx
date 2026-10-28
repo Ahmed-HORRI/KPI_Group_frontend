@@ -199,6 +199,38 @@ export function toneForDirection(direction) {
   return "slate";
 }
 
+// Header card of a dashboard view (Consult KPI, My KPI Analytics, Consult
+// Target Allocation), the same for the three: an AVO-blue icon tile, the
+// title and its description, actions on the right and, below a rule, the
+// view's controls (filters).
+export function ViewHeader({ icon: Icon, title, description, actions, children }) {
+  return (
+    <div className="mb-5 overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900 dark:shadow-none">
+      <div className="flex flex-wrap items-start justify-between gap-4 p-6">
+        {/* Shrinks before the actions wrap: they stay on the title line unless the screen is narrow. */}
+        <div className="flex min-w-0 flex-1 basis-[22rem] items-start gap-4">
+          {Icon ? (
+            <span
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg shadow-blue-600/25 dark:shadow-black/30"
+              aria-hidden="true"
+            >
+              <Icon size={22} />
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{title}</h2>
+            {description ? (
+              <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">{description}</p>
+            ) : null}
+          </div>
+        </div>
+        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+      </div>
+      {children ? <div className="border-t border-slate-200/80 px-6 py-4 dark:border-slate-800">{children}</div> : null}
+    </div>
+  );
+}
+
 export function EmptyState({ children }) {
   return (
     <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-14 text-center text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-500">

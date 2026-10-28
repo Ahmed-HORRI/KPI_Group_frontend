@@ -1533,6 +1533,16 @@ export function getParameterSubjectPath(row) {
   return String(row?.kpi_subject || row?.kpi_group || row?.kpi_name || "").trim();
 }
 
+// KPI name and Subject filters of the Target Allocation Matrix, as in the KPI
+// Matrix: the KPI's name and the last segment of its subject path.
+export function getAllocationKpiName(row) {
+  return String(row?.kpi_name || "").trim();
+}
+
+export function getAllocationSubjectName(row) {
+  return getLastPathSegment(row?.kpi_subject);
+}
+
 export function getParameterSubjectGroupKey(row) {
   const subjectPath = getParameterSubjectPath(row);
   if (subjectPath) return `subject:${subjectPath.toLowerCase()}`;

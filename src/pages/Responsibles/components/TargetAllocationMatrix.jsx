@@ -7,14 +7,18 @@ import {
   IconButton,
   StatTile,
   StatusPill,
+  ViewHeader,
   inputClass,
   toneForAllocationType,
 } from "./ui.jsx";
+import { TargetIcon } from "../../../components/icons.jsx";
 import { formatParameterDisplayDate, formatParameterDisplayValue } from "./formatting.js";
 import {
   buildParameterScopeSummary,
   filterParameterRows,
   formatParameterCountLabel,
+  getAllocationKpiName,
+  getAllocationSubjectName,
   getMultisiteUnitTargetCount,
   getParameterGroupedScopeKindLabel,
   groupParameterRowsBySubject,
@@ -22,11 +26,28 @@ import {
 
 // Port of the original page's "Target Allocation Matrix" section
 // (renderParameterKpis / applyParameterSearch / groupParameterRowsBySubject).
+// The KPI name and Subject filters work as in the KPI Matrix, with their
+// options taken from the loaded rows.
+
+function uniqueSorted(rows, getter) {
+  return Array.from(
+    new Set(
+      (Array.isArray(rows) ? rows : [])
+        .map(getter)
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+}
 
 export default function TargetAllocationMatrix({
   sourceRows,
   search,
   onSearchChange,
+  nameFilter,
+  onNameFilterChange,
+  subjectFilter,
+  onSubjectFilterChange,
   expandedKeys,
   onToggleGroup,
   loading,
@@ -35,10 +56,15 @@ export default function TargetAllocationMatrix({
   onEdit,
   onDelete,
 }) {
-  const filteredRows = useMemo(
-    () => filterParameterRows(sourceRows, search),
-    [sourceRows, search]
-  );
+  const nameOptions = useMemo(() => uniqueSorted(sourceRows, getAllocationKpiName), [sourceRows]);
+  const subjectOptions = useMemo(() => uniqueSorted(sourceRows, getAllocationSubjectName), [sourceRows]);
+
+  const filteredRows = useMemo(() => {
+    let rows = filterParameterRows(sourceRows, search);
+    if (nameFilter) rows = rows.filter((row) => getAllocationKpiName(row) === nameFilter);
+    if (subjectFilter) rows = rows.filter((row) => getAllocationSubjectName(row) === subjectFilter);
+    return rows;
+  }, [sourceRows, search, nameFilter, subjectFilter]);
   const subjectGroups = useMemo(() => groupParameterRowsBySubject(filteredRows), [filteredRows]);
 
   const visibleCount = filteredRows.length;
@@ -50,14 +76,6 @@ export default function TargetAllocationMatrix({
     [sourceRows]
   );
 
-  const meta = !visibleCount
-    ? totalCount > 0
-      ? "No matching subjects"
-      : "0 subjects"
-    : visibleCount === totalCount
-      ? `${visibleSubjectCount} subject${visibleSubjectCount === 1 ? "" : "s"} • ${visibleCount} allocation${visibleCount === 1 ? "" : "s"}`
-      : `${visibleSubjectCount} subject${visibleSubjectCount === 1 ? "" : "s"} • ${visibleCount} of ${totalCount} allocations`;
-
   const footerText =
     visibleCount === totalCount
       ? `Showing ${visibleSubjectCount} subject${visibleSubjectCount === 1 ? "" : "s"} • ${visibleCount} allocation${visibleCount === 1 ? "" : "s"}`
@@ -65,24 +83,68 @@ export default function TargetAllocationMatrix({
 
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-            Target Allocation Matrix
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            View and manage KPI target allocations grouped by subject first, then open each subject
-            to see the related KPIs, roles, frequencies, and target values.
-          </p>
+      <ViewHeader
+        icon={TargetIcon}
+        title="Target Allocation Matrix"
+        description="View and manage KPI target allocations grouped by subject first, then open each subject to see the related KPIs, roles, frequencies, and target values."
+        actions={
+          <button
+            type="button"
+            className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
+            onClick={onAdd}
+          >
+            + Add Target Allocation
+          </button>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Search target allocation
+            </label>
+            <input
+              className={inputClass}
+              placeholder="Filter by subject, KPI name, role, type, or frequency..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              KPI name
+            </label>
+            <select
+              className={inputClass}
+              value={nameFilter}
+              onChange={(e) => onNameFilterChange(e.target.value)}
+            >
+              <option value="">All</option>
+              {nameOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Subject
+            </label>
+            <select
+              className={inputClass}
+              value={subjectFilter}
+              onChange={(e) => onSubjectFilterChange(e.target.value)}
+            >
+              <option value="">All</option>
+              {subjectOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <button
-          type="button"
-          className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
-          onClick={onAdd}
-        >
-          + Add Target Allocation
-        </button>
-      </div>
+      </ViewHeader>
 
       {!loading && !loadError ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
@@ -93,22 +155,12 @@ export default function TargetAllocationMatrix({
         </div>
       ) : null}
 
-      <div className="mb-5 flex flex-wrap items-center gap-4">
-        <input
-          className={`${inputClass} max-w-xl`}
-          placeholder="Filter by subject, KPI name, role, type, or frequency..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{meta}</span>
-      </div>
-
       {loading ? (
         <EmptyState>Loading KPI target allocations...</EmptyState>
       ) : loadError ? (
         <EmptyState>Failed to load KPI target allocations.</EmptyState>
       ) : !visibleCount ? (
-        <EmptyState>No KPI target allocation found for the current search.</EmptyState>
+        <EmptyState>No KPI target allocation found for the current filters.</EmptyState>
       ) : (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">

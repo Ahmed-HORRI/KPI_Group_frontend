@@ -23,6 +23,8 @@ import {
   allocationToParameterForm,
   buildParameterPayload,
   doesParameterRowMatchAllocationIds,
+  getAllocationKpiName,
+  getAllocationSubjectName,
   getParameterAllocationIdsForDelete,
   groupParameterAllocationRows,
   mergeParameterAllocationCollections,
@@ -276,7 +278,22 @@ export default function ResponsibleDashboardPage() {
   const [allocationLoading, setAllocationLoading] = useState(true);
   const [allocationLoadError, setAllocationLoadError] = useState(false);
   const [allocationSearch, setAllocationSearch] = useState("");
+  const [allocationNameFilter, setAllocationNameFilter] = useState("");
+  const [allocationSubjectFilter, setAllocationSubjectFilter] = useState("");
   const [expandedAllocationKeys, setExpandedAllocationKeys] = useState(() => new Set());
+
+  // As for the KPI Matrix: drop a filter value no longer present in the reloaded rows.
+  useEffect(() => {
+    if (allocationNameFilter && !allocationRows.some((row) => getAllocationKpiName(row) === allocationNameFilter)) {
+      setAllocationNameFilter("");
+    }
+    if (
+      allocationSubjectFilter &&
+      !allocationRows.some((row) => getAllocationSubjectName(row) === allocationSubjectFilter)
+    ) {
+      setAllocationSubjectFilter("");
+    }
+  }, [allocationRows, allocationNameFilter, allocationSubjectFilter]);
 
   const loadAllocations = useCallback(async () => {
     setAllocationLoading(true);
@@ -960,6 +977,10 @@ export default function ResponsibleDashboardPage() {
             sourceRows={allocationRows}
             search={allocationSearch}
             onSearchChange={setAllocationSearch}
+            nameFilter={allocationNameFilter}
+            onNameFilterChange={setAllocationNameFilter}
+            subjectFilter={allocationSubjectFilter}
+            onSubjectFilterChange={setAllocationSubjectFilter}
             expandedKeys={expandedAllocationKeys}
             onToggleGroup={toggleSetItem(setExpandedAllocationKeys)}
             loading={allocationLoading}

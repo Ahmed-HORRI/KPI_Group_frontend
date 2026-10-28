@@ -8,11 +8,13 @@ import {
   IconButton,
   StatTile,
   StatusPill,
+  ViewHeader,
   ViewIcon,
   inputClass,
   toneForDirection,
   toneForStatus,
 } from "./ui.jsx";
+import { ClipboardIcon } from "../../../components/icons.jsx";
 import { formatParameterDisplayValue, getLastPathSegment } from "./formatting.js";
 
 // Port of the original page's "KPI Matrix" section (renderKpis / loadKpis /
@@ -135,22 +137,68 @@ export default function KpiMatrix({
 
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-3xl border border-slate-200 bg-gradient-to-br from-white to-blue-50 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-900">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">KPI Matrix</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            View and manage all KPI definitions with direct visibility on KPI name, KPI subject, KPI
-            code, unit, direction, and actions.
-          </p>
+      <ViewHeader
+        icon={ClipboardIcon}
+        title="KPI Matrix"
+        description="View and manage all KPI definitions with direct visibility on KPI name, KPI subject, KPI code, unit, direction, and actions."
+        actions={
+          <button
+            type="button"
+            className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
+            onClick={onAdd}
+          >
+            + Add KPI
+          </button>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-2">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Search KPI
+            </label>
+            <input
+              className={inputClass}
+              placeholder="Search by subject, name, code, unit or direction..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              KPI name
+            </label>
+            <select
+              className={inputClass}
+              value={nameFilter}
+              onChange={(e) => onNameFilterChange(e.target.value)}
+            >
+              <option value="">All</option>
+              {nameOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Subject
+            </label>
+            <select
+              className={inputClass}
+              value={subjectFilter}
+              onChange={(e) => onSubjectFilterChange(e.target.value)}
+            >
+              <option value="">All</option>
+              {subjectOptions.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <button
-          type="button"
-          className="rounded-2xl btn-brand px-5 py-3 text-sm font-extrabold shadow-lg transition hover:-translate-y-0.5"
-          onClick={onAdd}
-        >
-          + Add KPI
-        </button>
-      </div>
+      </ViewHeader>
 
       {!loading ? (
         <div className="mb-5 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
@@ -160,54 +208,6 @@ export default function KpiMatrix({
           <StatTile label="Consult only" value={totalKpiCount - ownedCount} tone="muted" />
         </div>
       ) : null}
-
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="lg:col-span-2">
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Search KPI
-          </label>
-          <input
-            className={inputClass}
-            placeholder="Search by subject, name, code, unit or direction..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            KPI name
-          </label>
-          <select
-            className={inputClass}
-            value={nameFilter}
-            onChange={(e) => onNameFilterChange(e.target.value)}
-          >
-            <option value="">All</option>
-            {nameOptions.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Subject
-          </label>
-          <select
-            className={inputClass}
-            value={subjectFilter}
-            onChange={(e) => onSubjectFilterChange(e.target.value)}
-          >
-            <option value="">All</option>
-            {subjectOptions.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
       {loading ? (
         <EmptyState>Loading KPIs...</EmptyState>
